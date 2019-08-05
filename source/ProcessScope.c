@@ -2158,8 +2158,8 @@ UINT8 MSG_TestingFunc(void)
 				memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
 				*pDILen = nDILen;
 #endif			
-//				collect_return_hdl(COLLECT_RET_FAIL_WBC_BSK);
-//				return e_Feedback_Error;
+				collect_return_hdl(COLLECT_RET_FAIL_WBC_BSK);
+				return e_Feedback_Error;
 			}
 		}
     }
