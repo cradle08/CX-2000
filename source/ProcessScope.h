@@ -17,13 +17,16 @@
 #define    CMD_CTRL_MOT_OUT_ONLY  0x00000105
 #define    CMD_CTRL_MOT_X_IN_ADD  0x00000106 
 #define    CMD_CTRL_REGISTER      0x00000200
-//#define    CMD_CTRL_WBC_SWITCH    0x00000300
-#define    CMD_CTRL_WBC_ENABLE    0x00000300
-#define    CMD_CTRL_WBC_PARA      0x00000400
-#define    CMD_CTRL_DEBUG_WBC     0x00000500
-#define    CMD_CTRL_TEST_WBC      0x00000501
-#define    CMD_CTRL_PRESS_CONFIG  0x00000600 
-#define    CMD_CTRL_PRESS_ADD     0x00000601 
+
+
+#define    CMD_CTRL_TRANSMISSION_GAIN   0x00000201 // transmission gain
+//#define    CMD_CTRL_WBC_SWITCH    	0x00000300
+#define    CMD_CTRL_WBC_ENABLE    		0x00000300
+#define    CMD_CTRL_WBC_PARA      		0x00000400
+#define    CMD_CTRL_DEBUG_WBC     		0x00000500
+#define    CMD_CTRL_TEST_WBC      		0x00000501
+#define    CMD_CTRL_PRESS_CONFIG  		0x00000600 
+#define    CMD_CTRL_PRESS_ADD     		0x00000601 
 #define    CMD_CTRL_MOT_OUT_CHECK 		0x00000700 
 #define    CMD_CTRL_MOT_IN_CHECK  		0x00000701 // yaolan_20190220
 #define    CMD_CTRL_WBC_48V_CHECK 		0x00000702 
@@ -142,6 +145,7 @@
 #define  PRESS_BUILD                   230000000   /* 30kPa->22kPa 适合检测的气压 */
 #define  TIME_OVER_TS_BUILD_PRESS      15000       /* 10秒  负压泵建立负压超时时间 */
 #define  TIME_OVER_TS_ADC              25000       /* 25秒  数据采集超时时间 */
+#define  TIME_TRANSMISSION_GAIN		   3000
 #endif
 
 #define  TIME_TS_ACTION_TIMEOUT        24000 //18000
@@ -257,6 +261,7 @@ _EXT_ UINT8 MSG_TestingFunc(UINT8 *pDInfo, UINT16 *pDILen);
 _EXT_ UINT8 MSG_TestingFunc(void);
 #endif
 
+void Transmission_Gain_Set(UINT8 nNo, UINT8 nVal);
 void Part_Test_Exec(UINT8 nNo, UINT32 nNum);
 void Part_Test_Moto_X(UINT8 nNo, UINT32 nNum);
 void Part_Test_WBC_Elec(UINT8 nNo, UINT32 nNum);

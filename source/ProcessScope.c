@@ -561,6 +561,11 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 //
             }
 			break;
+			case CMD_CTRL_TRANSMISSION_GAIN: // transmission gain
+			{
+				
+			}
+			break;
             case CMD_CTRL_WBC_ENABLE: //case CMD_CTRL_WBC_SWITCH:
             {
                 HW_EN_WBC((enum eFlag) * (pchCmdBuf + 8));
@@ -1848,6 +1853,37 @@ void Send_Packets_Test(UINT16 Time, UINT32 Num)
 		}
 }
 
+
+void Transmission_Gain_Set(UINT8 nNo, UINT8 nVal)
+{
+	UINT32 nCurTicks, nTempTicks;
+	
+	if(nNo != 0) printf("WBC Transmission Gain Prameter Error No=%d, Val=%d\r\n", nNo, nVal);
+	HW_ADJ_SetResistor(nNo, nVal);
+	IT_SYS_DlyMs(5);
+	
+	IT_ADC_SetTicks(0);          
+	IT_LIST_SetTicks(0);
+	
+    nCurTicks = IT_SYS_GetTicks();
+	nTempTicks = nCurTicks;
+	
+	HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
+    HW_Start_WBC();
+	while (nCurTicks <= (nTempTicks + TIME_TRANSMISSION_GAIN)) //3s
+    {
+		//----------getting data and send ------------------------------
+		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_SEND_FPGA_DATA);
+		nCurTicks = IT_SYS_GetTicks();
+	}
+	HW_End_WBC();
+	Send_Last_FIFO_Data();
+    collect_return_hdl(COLLECT_RET_SUCESS);  
+	
+}
+
+
+
 //
 #ifdef DEBUG_INFO_UP_LOAD
 UINT8 MSG_TestingFunc(UINT8 *pDInfo, UINT16 *pDILen)
@@ -2480,7 +2516,6 @@ UINT8 MSG_TestingFunc(void)
 		printf("------------------End Count: num=%d, udp=%d, q=%d, f=%d, ticks=%08d---nDILen=%d-------\r\n", (int)(Num -1), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail, (int)IT_LIST_GetTicks(), nDILen);
         return e_Feedback_Error;
     }
-	
 	// ------ count success------------
     collect_return_hdl(COLLECT_RET_SUCESS);  /* 采集完成 */
 	printf("------------------End Count: num=%d, udp=%d, q=%d, f=%d, ticks=%08d---nDILen=%d-------\r\n", (int)(Num -1), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail, (int)IT_LIST_GetTicks(), nDILen);
