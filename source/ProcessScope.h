@@ -145,7 +145,7 @@
 #define  PRESS_BUILD                   230000000   /* 30kPa->22kPa 适合检测的气压 */
 #define  TIME_OVER_TS_BUILD_PRESS      15000       /* 10秒  负压泵建立负压超时时间 */
 #define  TIME_OVER_TS_ADC              25000       /* 25秒  数据采集超时时间 */
-#define  TIME_TRANSMISSION_GAIN		   3000
+#define  TIME_TRANSMISSION_GAIN		   2000
 #endif
 
 #define  TIME_TS_ACTION_TIMEOUT        24000 //18000
@@ -261,7 +261,7 @@ _EXT_ UINT8 MSG_TestingFunc(UINT8 *pDInfo, UINT16 *pDILen);
 _EXT_ UINT8 MSG_TestingFunc(void);
 #endif
 
-void Transmission_Gain_Set(UINT8 nNo, UINT8 nVal);
+UINT8 Transmission_Gain_Set(UINT8 nNo, UINT8 nVal);
 void Part_Test_Exec(UINT8 nNo, UINT32 nNum);
 void Part_Test_Moto_X(UINT8 nNo, UINT32 nNum);
 void Part_Test_WBC_Elec(UINT8 nNo, UINT32 nNum);

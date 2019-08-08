@@ -563,7 +563,9 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
 			case CMD_CTRL_TRANSMISSION_GAIN: // transmission gain
 			{
-				
+				printf("WBC Gain No=%d, Val=%d\r\n", \
+					*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+				Transmission_Gain_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
 			}
 			break;
             case CMD_CTRL_WBC_ENABLE: //case CMD_CTRL_WBC_SWITCH:
@@ -1854,23 +1856,41 @@ void Send_Packets_Test(UINT16 Time, UINT32 Num)
 }
 
 
-void Transmission_Gain_Set(UINT8 nNo, UINT8 nVal)
+UINT8 Transmission_Gain_Set(UINT8 nNo, UINT8 nVal)
 {
 	UINT32 nCurTicks, nTempTicks;
 	
 	if(nNo != 0) printf("WBC Transmission Gain Prameter Error No=%d, Val=%d\r\n", nNo, nVal);
-	HW_ADJ_SetResistor(nNo, nVal);
-	IT_SYS_DlyMs(5);
-	
-	IT_ADC_SetTicks(0);          
-	IT_LIST_SetTicks(0);
-	
-    nCurTicks = IT_SYS_GetTicks();
-	nTempTicks = nCurTicks;
+	//HW_ADJ_SetResistor(nNo, nVal);
+	IT_SYS_DlyMs(2);
 	
 	HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
-    HW_Start_WBC();
-	while (nCurTicks <= (nTempTicks + TIME_TRANSMISSION_GAIN)) //3s
+	if (E_AXIS_X_POS_HOME != MT_X_get_posi())
+    {
+		printf("Count Error: MT x not at home position\r\n");
+        collect_return_hdl(COLLECT_RET_FAIL_NONE_HOME);  /* Î´Ö´ÐÐ½ø²Ö²Ù×÷ */
+        return e_Feedback_Error;
+    }
+	
+//	if(EN_WBC_V_LOW != Get_WBC_V_Status(COUNT_WBC_START_V)) // the wbc_v not changed
+//	{
+//		printf("Count Error: WBC Elec Touch Error, elec=%d, wbc_v=%d, press=%09d\r\n",\
+//			(int)hw_filter_get_electrode(INDEX_ELECTRODE),(int)Get_WBC_V_Value(), (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+//		collect_return_hdl(COLLECT_RET_FAIL_WBC_TOUCH);
+//		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
+//		return e_Feedback_Error;	
+//	}
+	//HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
+	Reset_Udp_Count(0);
+	IT_ADC_SetTicks(0);          
+	IT_LIST_SetTicks(0);
+
+    nCurTicks = IT_SYS_GetTicks();
+	nTempTicks = nCurTicks;
+    
+	HW_Start_WBC();
+	HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_SEND_FPGA_DATA);
+	while (nCurTicks <= (nTempTicks + TIME_TRANSMISSION_GAIN)) 
     {
 		//----------getting data and send ------------------------------
 		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_SEND_FPGA_DATA);
@@ -1878,8 +1898,15 @@ void Transmission_Gain_Set(UINT8 nNo, UINT8 nVal)
 	}
 	HW_End_WBC();
 	Send_Last_FIFO_Data();
-    collect_return_hdl(COLLECT_RET_SUCESS);  
+
 	
+	printf("\r\nCount Status: Success, ticks=%08d, adc_ticks=%08d, udp=%d, q=%d, f=%d, wbc_v=%d, press=%010d\r\n",\
+				(int)IT_LIST_GetTicks(), (int)IT_ADC_GetTicks(), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail,\
+				 (int)Get_WBC_V_Value(), (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+	
+
+    collect_return_hdl(COLLECT_RET_SUCESS);  
+	printf("end\r\n");
 }
 
 
