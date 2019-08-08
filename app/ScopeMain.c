@@ -167,7 +167,7 @@ void ADC1_Init(void)
 	ADC1_DMA_Config((UINT32)&ADC1->DR, (UINT32)g_ADC_Buffer, ADC_BUFFER_LEN);
 	ADC_DMACmd(ADC1, ENABLE);
 	
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_15Cycles); //ADC_SampleTime_3Cycles
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 	
 	

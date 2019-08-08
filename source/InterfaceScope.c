@@ -1699,8 +1699,9 @@ UINT8 ADC_Send(UINT32 nCmd, UINT32 nId, UINT16 * pData)
 	//memmove(&s_anBufNet[4], pData, 256);
 	for(i = 0; i < 256; i++)
 	{
-		nData = *(pData + i);
-		s_anBufNet[4 + i] = (nData>>8)|(nData<<8);
+//		nData = *(pData + i);
+//		s_anBufNet[4 + i] = (nData>>8)|(nData<<8);
+		s_anBufNet[4 + i] = *(pData + i);
 		
 //		s_anBufNet[6 + i] = *(pData + i);;
 	}
