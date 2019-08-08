@@ -5,6 +5,14 @@
 
 #include "KernelHeader.h"
 
+
+
+IO_ ADC_Status_InitTypeDef ADC_Status = {0};
+UINT16 g_ADC_Buffer[ADC_BUFFER_LEN] = {0};
+
+
+
+
 ////===================================================
 ////
 //#define  TIMING_1    (50)
@@ -590,7 +598,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 //
             }
 			break;
-            case CMD_CTRL_TEST_WBC: // count func
+            case CMD_CTRL_NET_TEST://CMD_CTRL_TEST_WBC: // count func
             {
                 nCommand  = CMD_CTRL_TEST_WBC;
                 // bSendBack = e_True;
@@ -617,6 +625,74 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				nParaLen = 0;
 #endif              
 				Reset_Udp_Count(0);
+			}
+			break;
+			case CMD_CTRL_TEST_WBC:
+			{
+			
+//				nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+//				nWord  = PL_UnionFourBytes(*(pchCmdBuf + 10),*(pchCmdBuf + 11),\
+//											*(pchCmdBuf + 12),*(pchCmdBuf + 13));
+//				printf("Send Packet Test: time=%d, num=%d\r\n", nShort, (int)nWord);
+//				Send_Packets_Test(nShort, nWord);
+				
+				//ADC1_Init();
+		
+				//ADC_SoftwareStartConv(ADC1);
+				memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
+				printf("ADC Start Ticks=%d\r\n", (int)IT_SYS_GetTicks());
+				
+				//ADC_DMACmd(ADC1, ENABLE);
+				//ADC_Cmd(ADC1, ENABLE);
+				
+				ADC1_Init();
+				IT_SYS_DlyMs(2);
+				ADC_SoftwareStartConv(ADC1);
+				while(ADC_Status.nID < 40000)
+				{
+					if(ADC_Status.nSFlag == 1)
+					{
+						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, g_ADC_Buffer);
+						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
+						ADC_Status.nSFlag = 0xFF;
+						//printf()
+						memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
+						ADC_Status.nSendID++;
+					}else if(ADC_Status.nSFlag == 2){
+						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN/2]);	
+						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN_HALF]);
+						ADC_Status.nSFlag = 0xFF;
+						memset(&g_ADC_Buffer[ADC_BUFFER_LEN_HALF], 0, ADC_BUFFER_LEN_HALF);
+						ADC_Status.nSendID++;
+					}
+				}
+				IT_SYS_DlyMs(5);
+				collect_return_hdl(COLLECT_RET_SUCESS);
+				printf("adc end: id=%d, sendid=%d, T=%d\r\n", \
+						(int)ADC_Status.nID, (int)ADC_Status.nSendID, (int)IT_SYS_GetTicks());
+				
+				DMA_Cmd(DMA2_Stream0, ENABLE);
+				ADC_DMACmd(ADC1, DISABLE);
+				ADC_Cmd(ADC1, DISABLE);
+				//
+				nParaLen = 0;
+				pchFbkBuf[nParaLen++] = 0x44; pchFbkBuf[nParaLen++] = 0x53; pchFbkBuf[nParaLen++] = 0x57; 
+				pchFbkBuf[nParaLen++] = 0x44; pchFbkBuf[nParaLen++] = 0x30; pchFbkBuf[nParaLen++] = 0x00;
+				pchFbkBuf[nParaLen++] = 0x02; pchFbkBuf[nParaLen++] = 0x01;
+				pchFbkBuf[nParaLen++] = 0x00; pchFbkBuf[nParaLen++] = 0x00;
+				
+				nParaLen = 15;
+				strncpy((char*)&pchFbkBuf[10],"wbc adc test\r\n", nParaLen);
+				pchFbkBuf[8]  = (nParaLen - 10) >> 8;
+				pchFbkBuf[9] = (nParaLen - 10);
+				if(e_Feedback_Fail == udp_echoserver_senddata((UINT8 *)pchFbkBuf, nParaLen))
+				{
+					IT_SYS_DlyMs(1);
+				}
+				printf("debug msg len: %d\r\n", nParaLen);
+				nParaLen = 0;
+			
+			
 			}
 			break;
             case CMD_CTRL_PRESS_CONFIG:
@@ -703,14 +779,14 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				Part_Test_Exec(*(pchCmdBuf + 8), nWord);			
 			}
 			break;
-			case CMD_CTRL_NET_TEST:
-			{
-				nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
-				nWord  = PL_UnionFourBytes(*(pchCmdBuf + 10),*(pchCmdBuf + 11),\
-											*(pchCmdBuf + 12),*(pchCmdBuf + 13));
-				printf("Send Packet Test: time=%d, num=%d\r\n", nShort, (int)nWord);
-				Send_Packets_Test(nShort, nWord);
-			}
+//			case CMD_CTRL_NET_TEST:
+//			{
+//				nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+//				nWord  = PL_UnionFourBytes(*(pchCmdBuf + 10),*(pchCmdBuf + 11),\
+//											*(pchCmdBuf + 12),*(pchCmdBuf + 13));
+//				printf("Send Packet Test: time=%d, num=%d\r\n", nShort, (int)nWord);
+//				Send_Packets_Test(nShort, nWord);
+//			}
 			break;
             default:
             {
@@ -1907,6 +1983,7 @@ UINT8 Transmission_Gain_Set(UINT8 nNo, UINT8 nVal)
 
     collect_return_hdl(COLLECT_RET_SUCESS);  
 	printf("end\r\n");
+	return 0;
 }
 
 

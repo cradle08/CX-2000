@@ -5,6 +5,24 @@
 
 #include  "MyType.h"
 #include "InterfaceScope.h"
+#include "stm32f4xx_adc.h"
+
+typedef struct{
+	UINT8 nSFlag;
+	UINT16 nPos;
+	UINT32 nID;
+	UINT32 nSendID;
+}ADC_Status_InitTypeDef;
+#define ADC_BUFFER_LEN		512
+#define ADC_BUFFER_LEN_HALF	256
+
+extern IO_ ADC_Status_InitTypeDef ADC_Status;
+extern UINT16 g_ADC_Buffer[ADC_BUFFER_LEN];
+
+void ADC1_Init(void);
+
+
+
 
 //----- control --------------------------------------
 #define    CMD_CTRL_VALVE         0x00000000
@@ -96,6 +114,8 @@
 #define  COLLECT_RET_FAIL_OTHER        	0x0050      /* 因其他异常导致采集失败 */
 
 //#define  COLLECT_RET_SUCCESS_AIRLIGHT     0x1001      /* 密闭性好 */  // yaolan
+#define    CMD_DATA_TEST_WBC   			0x30000501
+
 
 #define PUMP_SELF_CHECK_TIME           5000
 

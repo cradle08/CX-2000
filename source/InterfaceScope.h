@@ -220,7 +220,7 @@ _EXT_ UINT8 MT_RESET_Software(void);
 //
 _EXT_ UINT8  MSG_SampleBoardFeedback(void);
 
-
+UINT8 ADC_Send(UINT32 nCmd, UINT32 nId, UINT16 * pData); ////////////////////
 
 #endif
 
