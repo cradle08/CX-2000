@@ -1725,6 +1725,7 @@ UINT8 ADC_Send(UINT32 nCmd, UINT32 nId, UINT16 * pData)
 	}
 	udp_echoserver_senddata(((UINT8 *)(s_anBufNet + 0)), ((256 + 6) * 2));
 #endif
+	return 0;
 }
 
 

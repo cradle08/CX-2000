@@ -8,10 +8,10 @@
 
 
 IO_ ADC_Status_InitTypeDef ADC_Status = {0};
-UINT16 g_ADC_Buffer[ADC_BUFFER_LEN] = {0};
+//UINT16 g_ADC_Buffer[ADC_BUFFER_LEN] = {0};
 
-
-
+UINT16 g_ADC_Buffer[ADC_BUFFER_LEN_HALF] = {0};
+UINT16 g_ADC_Buffer_2[ADC_BUFFER_LEN_HALF] = {0};
 
 ////===================================================
 ////
@@ -650,30 +650,45 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				ADC_SoftwareStartConv(ADC1);
 				while(ADC_Status.nID < 40000)
 				{
-					if(ADC_Status.nSFlag == 1)
-					{
-						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, g_ADC_Buffer);
-						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
-						ADC_Status.nSFlag = 0xFF;
-						//printf()
-						memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
-						ADC_Status.nSendID++;
-					}else if(ADC_Status.nSFlag == 2){
-						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN/2]);	
-						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN_HALF]);
-						ADC_Status.nSFlag = 0xFF;
-						memset(&g_ADC_Buffer[ADC_BUFFER_LEN_HALF], 0, ADC_BUFFER_LEN_HALF);
-						ADC_Status.nSendID++;
-					}
+//					if(ADC_Status.nSFlag == 1)
+//					{
+//						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, g_ADC_Buffer);
+//						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
+//						ADC_Status.nSFlag = 0xFF;
+//						//printf()
+//						memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
+//						ADC_Status.nSendID++;
+//					}else if(ADC_Status.nSFlag == 2){
+//						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN/2]);	
+//						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN_HALF]);
+//						ADC_Status.nSFlag = 0xFF;
+//						memset(&g_ADC_Buffer[ADC_BUFFER_LEN_HALF], 0, ADC_BUFFER_LEN_HALF);
+//						ADC_Status.nSendID++;
+//					}
+					if(ADC_Status.nSFlag == 1){
+							//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN/2]);	
+							ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
+							ADC_Status.nSFlag = 0xFF;
+							memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
+							ADC_Status.nSendID++;
+					}else if(ADC_Status.nSFlag == 2){{
+							ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer_2);
+							ADC_Status.nSFlag = 0xFF;
+							//printf()
+							memset(g_ADC_Buffer_2, 0, ADC_BUFFER_LEN_HALF);
+							ADC_Status.nSendID++;	
+							
+						}
+					}		
 				}
-				IT_SYS_DlyMs(5);
+				DMA_Cmd(DMA2_Stream0, ENABLE);
+				ADC_DMACmd(ADC1, DISABLE);
+				ADC_Cmd(ADC1, DISABLE);
+				IT_SYS_DlyMs(2);
 				collect_return_hdl(COLLECT_RET_SUCESS);
 				printf("adc end: id=%d, sendid=%d, T=%d\r\n", \
 						(int)ADC_Status.nID, (int)ADC_Status.nSendID, (int)IT_SYS_GetTicks());
 				
-				DMA_Cmd(DMA2_Stream0, ENABLE);
-				ADC_DMACmd(ADC1, DISABLE);
-				ADC_Cmd(ADC1, DISABLE);
 				//
 				nParaLen = 0;
 				pchFbkBuf[nParaLen++] = 0x44; pchFbkBuf[nParaLen++] = 0x53; pchFbkBuf[nParaLen++] = 0x57; 
@@ -787,7 +802,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 //				printf("Send Packet Test: time=%d, num=%d\r\n", nShort, (int)nWord);
 //				Send_Packets_Test(nShort, nWord);
 //			}
-			break;
+//			break;
             default:
             {
                 break;

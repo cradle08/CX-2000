@@ -1127,7 +1127,7 @@ FrameTypeDef ETH_Get_Received_Frame(void)
 }
 
 /**
-  * @brief  This function should be called when a frame is received using DMA 
+  * @brief  This function should be called when a frame is rec1eived using DMA 
   *         Receive interrupt, it allows scanning of Rx descriptors to get the
   *         the receive frame (should be used with interrupt mode only)
   * @param  None
