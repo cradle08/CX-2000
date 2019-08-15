@@ -148,6 +148,7 @@ void ADC1_Init(void)
 	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_5;//GPIO_Pin_5, PA5, PA6
 	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
 	//ADC1
@@ -172,8 +173,9 @@ void ADC1_Init(void)
 	ADC1_DMA_Config();
 	ADC_DMACmd(ADC1, ENABLE);
 	
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_15Cycles); //ADC_SampleTime_3Cycles
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
+	//ADC_SoftwareStartConv(ADC1);
 	
 }
 

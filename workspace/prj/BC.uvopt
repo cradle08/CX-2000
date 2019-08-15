@@ -121,7 +121,7 @@
         <tPdscDbg>0</tPdscDbg>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
-        <nTsel>6</nTsel>
+        <nTsel>11</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -132,7 +132,7 @@
         <tDlgDll></tDlgDll>
         <tDlgPa></tDlgPa>
         <tIfile></tIfile>
-        <pMon>Segger\JL2CM3.dll</pMon>
+        <pMon>STLink\ST-LINKIII-KEIL_SWO.dll</pMon>
       </DebugOpt>
       <TargetDriverDllRegistry>
         <SetRegEntry>
@@ -204,6 +204,86 @@
           <ExecCommand></ExecCommand>
           <Expression>\\CX_2000_SLA_V007\../../app/ScopeMain.c\203</Expression>
         </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>204</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\app\ScopeMain.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>3</Number>
+          <Type>0</Type>
+          <LineNumber>671</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>4</Number>
+          <Type>0</Type>
+          <LineNumber>205</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\app\ScopeMain.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>5</Number>
+          <Type>0</Type>
+          <LineNumber>672</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>6</Number>
+          <Type>0</Type>
+          <LineNumber>673</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
@@ -272,10 +352,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>22</ColumnNumber>
+      <ColumnNumber>47</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>161</TopLine>
-      <CurrentLine>172</CurrentLine>
+      <TopLine>137</TopLine>
+      <CurrentLine>150</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\app\ScopeMain.c</PathWithFileName>
       <FilenameWithoutPath>ScopeMain.c</FilenameWithoutPath>
@@ -306,8 +386,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>178</TopLine>
-      <CurrentLine>182</CurrentLine>
+      <TopLine>350</TopLine>
+      <CurrentLine>356</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\core\startup_stm32f40_41xxx.s</PathWithFileName>
       <FilenameWithoutPath>startup_stm32f40_41xxx.s</FilenameWithoutPath>
@@ -344,10 +424,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>30</ColumnNumber>
+      <ColumnNumber>34</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>681</TopLine>
-      <CurrentLine>687</CurrentLine>
+      <TopLine>649</TopLine>
+      <CurrentLine>661</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\ProcessScope.c</PathWithFileName>
       <FilenameWithoutPath>ProcessScope.c</FilenameWithoutPath>
@@ -360,10 +440,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>6</ColumnNumber>
+      <ColumnNumber>28</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>370</TopLine>
-      <CurrentLine>371</CurrentLine>
+      <TopLine>456</TopLine>
+      <CurrentLine>463</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\Protocol.c</PathWithFileName>
       <FilenameWithoutPath>Protocol.c</FilenameWithoutPath>
@@ -376,10 +456,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>55</ColumnNumber>
+      <ColumnNumber>1</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1684</TopLine>
-      <CurrentLine>1688</CurrentLine>
+      <TopLine>1687</TopLine>
+      <CurrentLine>1689</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\InterfaceScope.c</PathWithFileName>
       <FilenameWithoutPath>InterfaceScope.c</FilenameWithoutPath>
@@ -392,10 +472,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>1</ColumnNumber>
+      <ColumnNumber>22</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>60</TopLine>
-      <CurrentLine>66</CurrentLine>
+      <TopLine>540</TopLine>
+      <CurrentLine>545</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\SamplingPort.c</PathWithFileName>
       <FilenameWithoutPath>SamplingPort.c</FilenameWithoutPath>
@@ -432,10 +512,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>52</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1268</TopLine>
-      <CurrentLine>1349</CurrentLine>
+      <TopLine>1105</TopLine>
+      <CurrentLine>1107</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\ETH_Driver\src\stm32f4x7_eth.c</PathWithFileName>
       <FilenameWithoutPath>stm32f4x7_eth.c</FilenameWithoutPath>
@@ -490,7 +570,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>206</TopLine>
+      <TopLine>211</TopLine>
       <CurrentLine>213</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\driver\src\stm32f4xx_adc.c</PathWithFileName>
@@ -664,10 +744,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>33</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>723</TopLine>
-      <CurrentLine>730</CurrentLine>
+      <TopLine>766</TopLine>
+      <CurrentLine>767</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\driver\src\stm32f4xx_dma.c</PathWithFileName>
       <FilenameWithoutPath>stm32f4xx_dma.c</FilenameWithoutPath>
@@ -968,10 +1048,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>4460996</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>184</TopLine>
+      <CurrentLine>189</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\driver\src\stm32f4xx_syscfg.c</PathWithFileName>
       <FilenameWithoutPath>stm32f4xx_syscfg.c</FilenameWithoutPath>
@@ -1040,10 +1120,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>4</ColumnNumber>
+      <ColumnNumber>20</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>235</TopLine>
-      <CurrentLine>79</CurrentLine>
+      <TopLine>160</TopLine>
+      <CurrentLine>164</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\config\Scope_It.c</PathWithFileName>
       <FilenameWithoutPath>Scope_It.c</FilenameWithoutPath>
@@ -1088,10 +1168,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>1</ColumnNumber>
+      <ColumnNumber>16</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>85</TopLine>
-      <CurrentLine>86</CurrentLine>
+      <TopLine>404</TopLine>
+      <CurrentLine>411</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\config\BufferCircle.c</PathWithFileName>
       <FilenameWithoutPath>BufferCircle.c</FilenameWithoutPath>
@@ -1104,10 +1184,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>4</ColumnNumber>
+      <ColumnNumber>28</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>343</TopLine>
+      <CurrentLine>345</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\config\NetBufferCircle.c</PathWithFileName>
       <FilenameWithoutPath>NetBufferCircle.c</FilenameWithoutPath>
@@ -1120,10 +1200,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>22</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>404</TopLine>
+      <CurrentLine>411</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\config\SampleBufferCircle.c</PathWithFileName>
       <FilenameWithoutPath>SampleBufferCircle.c</FilenameWithoutPath>
@@ -1176,10 +1256,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>3</ColumnNumber>
+      <ColumnNumber>19</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>248</TopLine>
-      <CurrentLine>249</CurrentLine>
+      <TopLine>315</TopLine>
+      <CurrentLine>322</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\port\STM32F4x7\Standalone\ethernetif.c</PathWithFileName>
       <FilenameWithoutPath>ethernetif.c</FilenameWithoutPath>
@@ -1192,10 +1272,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>52</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>225</TopLine>
-      <CurrentLine>226</CurrentLine>
+      <TopLine>687</TopLine>
+      <CurrentLine>688</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\netif\etharp.c</PathWithFileName>
       <FilenameWithoutPath>etharp.c</FilenameWithoutPath>
@@ -1314,8 +1394,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>41</TopLine>
+      <CurrentLine>44</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\core\ipv4\ip_addr.c</PathWithFileName>
       <FilenameWithoutPath>ip_addr.c</FilenameWithoutPath>
@@ -1440,10 +1520,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>52</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>170</TopLine>
-      <CurrentLine>172</CurrentLine>
+      <TopLine>134</TopLine>
+      <CurrentLine>139</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\core\netif.c</PathWithFileName>
       <FilenameWithoutPath>netif.c</FilenameWithoutPath>
@@ -1456,10 +1536,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>1</ColumnNumber>
+      <ColumnNumber>39</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>210</TopLine>
+      <CurrentLine>211</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\core\pbuf.c</PathWithFileName>
       <FilenameWithoutPath>pbuf.c</FilenameWithoutPath>
@@ -1584,10 +1664,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>22</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>727</TopLine>
-      <CurrentLine>728</CurrentLine>
+      <TopLine>925</TopLine>
+      <CurrentLine>930</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\core\udp.c</PathWithFileName>
       <FilenameWithoutPath>udp.c</FilenameWithoutPath>
@@ -1656,10 +1736,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>4460996</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>1</TopLine>
+      <CurrentLine>1</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\api\netbuf.c</PathWithFileName>
       <FilenameWithoutPath>netbuf.c</FilenameWithoutPath>
@@ -1672,10 +1752,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>4460996</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>1</TopLine>
+      <CurrentLine>1</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\api\netdb.c</PathWithFileName>
       <FilenameWithoutPath>netdb.c</FilenameWithoutPath>
@@ -1746,8 +1826,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>206</TopLine>
-      <CurrentLine>210</CurrentLine>
+      <TopLine>150</TopLine>
+      <CurrentLine>155</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip_app\netconf.c</PathWithFileName>
       <FilenameWithoutPath>netconf.c</FilenameWithoutPath>
@@ -1762,8 +1842,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>356</TopLine>
-      <CurrentLine>358</CurrentLine>
+      <TopLine>166</TopLine>
+      <CurrentLine>171</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip_app\stm32f4x7_eth_bsp.c</PathWithFileName>
       <FilenameWithoutPath>stm32f4x7_eth_bsp.c</FilenameWithoutPath>
@@ -1776,10 +1856,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>1</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>148</TopLine>
-      <CurrentLine>149</CurrentLine>
+      <TopLine>154</TopLine>
+      <CurrentLine>155</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip_app\udp_echoserver.c</PathWithFileName>
       <FilenameWithoutPath>udp_echoserver.c</FilenameWithoutPath>

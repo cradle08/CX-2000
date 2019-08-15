@@ -640,13 +640,16 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 		
 				//ADC_SoftwareStartConv(ADC1);
 				memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
-				printf("ADC Start Ticks=%d\r\n", (int)IT_SYS_GetTicks());
+				printf("ADC Start Ticks T=%d\r\n", (int)IT_SYS_GetTicks());
 				
 				//ADC_DMACmd(ADC1, ENABLE);
 				//ADC_Cmd(ADC1, ENABLE);
 				
+				//ADC1_Init();
+				//IT_SYS_DlyMs(2);
+				//ADC_SoftwareStartConv(ADC1);
+				memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
 				ADC1_Init();
-				IT_SYS_DlyMs(2);
 				ADC_SoftwareStartConv(ADC1);
 				while(ADC_Status.nID < 40000)
 				{
@@ -681,10 +684,10 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 						}
 					}		
 				}
-				DMA_Cmd(DMA2_Stream0, ENABLE);
-				ADC_DMACmd(ADC1, DISABLE);
 				ADC_Cmd(ADC1, DISABLE);
-				IT_SYS_DlyMs(2);
+				ADC_DMACmd(ADC1, DISABLE);
+				DMA_Cmd(DMA2_Stream0, DISABLE);
+				//IT_SYS_DlyMs(2);
 				collect_return_hdl(COLLECT_RET_SUCESS);
 				printf("adc end: id=%d, sendid=%d, T=%d\r\n", \
 						(int)ADC_Status.nID, (int)ADC_Status.nSendID, (int)IT_SYS_GetTicks());
