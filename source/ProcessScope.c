@@ -11,7 +11,7 @@ IO_ ADC_Status_InitTypeDef ADC_Status = {0};
 //UINT16 g_ADC_Buffer[ADC_BUFFER_LEN] = {0};
 
 UINT16 g_ADC_Buffer[ADC_BUFFER_LEN_HALF] = {0};
-UINT16 g_ADC_Buffer_2[ADC_BUFFER_LEN_HALF] = {0};
+//UINT16 g_ADC_Buffer_2[ADC_BUFFER_LEN_HALF] = {0};
 
 ////===================================================
 ////
@@ -653,36 +653,35 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				ADC_SoftwareStartConv(ADC1);
 				while(ADC_Status.nID < 40000)
 				{
-//					if(ADC_Status.nSFlag == 1)
-//					{
-//						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, g_ADC_Buffer);
-//						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
-//						ADC_Status.nSFlag = 0xFF;
-//						//printf()
-//						memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
-//						ADC_Status.nSendID++;
+					if(ADC_Status.nSFlag == 1)
+					{
+						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, g_ADC_Buffer);
+						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
+						ADC_Status.nSFlag = 0xFF;
+						//printf()
+						memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
+						ADC_Status.nSendID++;
+					}else if(ADC_Status.nSFlag == 2){
+						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN_HALF]);
+						ADC_Status.nSFlag = 0xFF;
+						memset(&g_ADC_Buffer[ADC_BUFFER_LEN_HALF], 0, ADC_BUFFER_LEN_HALF);
+						ADC_Status.nSendID++;
+					}
+					
+					
+//					if(ADC_Status.nSFlag == 1){
+//							//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN/2]);	
+//							ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
+//							ADC_Status.nSFlag = 0xFF;
+//							memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
+//							ADC_Status.nSendID++;
 //					}else if(ADC_Status.nSFlag == 2){
-//						//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN/2]);	
-//						ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN_HALF]);
-//						ADC_Status.nSFlag = 0xFF;
-//						memset(&g_ADC_Buffer[ADC_BUFFER_LEN_HALF], 0, ADC_BUFFER_LEN_HALF);
-//						ADC_Status.nSendID++;
-//					}
-					if(ADC_Status.nSFlag == 1){
-							//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN/2]);	
-							ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
-							ADC_Status.nSFlag = 0xFF;
-							memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
-							ADC_Status.nSendID++;
-					}else if(ADC_Status.nSFlag == 2){{
-							ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer_2);
-							ADC_Status.nSFlag = 0xFF;
-							//printf()
-							memset(g_ADC_Buffer_2, 0, ADC_BUFFER_LEN_HALF);
-							ADC_Status.nSendID++;	
-							
-						}
-					}		
+//							ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer_2);
+//							ADC_Status.nSFlag = 0xFF;
+//							//printf()
+//							memset(g_ADC_Buffer_2, 0, ADC_BUFFER_LEN_HALF);
+//							ADC_Status.nSendID++;	
+//					}		
 				}
 				ADC_Cmd(ADC1, DISABLE);
 				ADC_DMACmd(ADC1, DISABLE);
@@ -709,8 +708,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				}
 				printf("debug msg len: %d\r\n", nParaLen);
 				nParaLen = 0;
-			
-			
+
 			}
 			break;
             case CMD_CTRL_PRESS_CONFIG:

@@ -84,10 +84,6 @@ void test(void)
 
 
 
-
-
-
-
 void ADC1_DMA_Config()
 {
 	DMA_InitTypeDef DMA_InitStructure;
@@ -113,33 +109,32 @@ void ADC1_DMA_Config()
 	DMA_InitStructure.DMA_MemoryBurst			= DMA_MemoryBurst_Single;
 	DMA_InitStructure.DMA_PeripheralBurst 		= DMA_PeripheralBurst_Single;
 	
-	DMA_DoubleBufferModeConfig(DMA2_Stream0,(uint32_t)&g_ADC_Buffer_2,DMA_Memory_0);//DMA_Memory_0?????
-	DMA_DoubleBufferModeCmd(DMA2_Stream0,ENABLE);
+	//DMA_DoubleBufferModeConfig(DMA2_Stream0,(uint32_t)&g_ADC_Buffer_2,DMA_Memory_0);//DMA_Memory_0?????
+	//DMA_DoubleBufferModeCmd(DMA2_Stream0,ENABLE);
 	DMA_Init(DMA2_Stream0, &DMA_InitStructure); 
 		
 	// NVIC
-	//DMA_ClearITPendingBit(DMA2_Stream0,DMA_IT_HTIF0);
-	//DMA_ClearITPendingBit(DMA2_Stream0,DMA_IT_TCIF0);
-	//DMA_ITConfig(DMA2_Stream0,DMA_IT_TC,ENABLE);
-	//DMA_ITConfig(DMA2_Stream0,DMA_IT_HT,ENABLE);	
+	DMA_ClearITPendingBit(DMA2_Stream0,DMA_IT_HTIF0);
+	DMA_ClearITPendingBit(DMA2_Stream0,DMA_IT_TCIF0);
+	DMA_ITConfig(DMA2_Stream0,DMA_IT_TC,ENABLE);
+	DMA_ITConfig(DMA2_Stream0,DMA_IT_HT,ENABLE);	
 		
 	NVIC_InitStructure.NVIC_IRQChannel=DMA2_Stream0_IRQn; 
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x02;   
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x02;                      
 	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
-	DMA_ClearITPendingBit(DMA2_Stream0,DMA_IT_TCIF0);
-	DMA_ITConfig(DMA2_Stream0,DMA_IT_TC,ENABLE);
-	
+	//DMA_ClearITPendingBit(DMA2_Stream0,DMA_IT_TCIF0);
+	//DMA_ITConfig(DMA2_Stream0,DMA_IT_TC,ENABLE);
 	//while (DMA_GetCmdStatus(DMA2_Stream0) != DISABLE){}
 	DMA_Cmd(DMA2_Stream0, ENABLE);
-	
 }
+
 
 void ADC1_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	 ADC_CommonInitTypeDef ADC_CommonInitStructure;
+	ADC_CommonInitTypeDef ADC_CommonInitStructure;
 	ADC_InitTypeDef ADC_InitStructure;
 	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
@@ -159,6 +154,7 @@ void ADC1_Init(void)
 	ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
 	ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div4;
 	ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_1;
+	ADC_CommonInit(&ADC_CommonInitStructure);
 	// ADC Set
 	ADC_InitStructure.ADC_Resolution	= ADC_Resolution_12b;
 	ADC_InitStructure.ADC_ScanConvMode  = DISABLE;
@@ -176,44 +172,42 @@ void ADC1_Init(void)
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 	//ADC_SoftwareStartConv(ADC1);
-	
 }
 
 
-//
 //FlagStatus DMA_GetFlagStatus(DMA_Stream_TypeDef* DMAy_Streamx, uint32_t DMA_FLAG)
 //uint16_t DMA_GetCurrDataCounter(DMA_Stream_TypeDef* DMAy_Streamx)
 void DMA2_Stream0_IRQHandler(void) 
 {
 	// half DMA_GetFlagStatus
-//	if (DMA_GetITStatus(DMA2_Stream0, DMA_IT_HTIF0) == SET)  
-//	{
-//		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_HTIF0);
-//		ADC_Status.nSFlag = 1;
-//		ADC_Status.nID++;
-//		
-////		ADC_Status.nPos   = DMA_GetCurrDataCounter(DMA2_Stream0);
-////		printf("%d-%d,", (int)IT_SYS_GetTicks(), ADC_Status.nPos);
-//		//DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_HTIF0); 
-//	}
-	// all
+	if (DMA_GetITStatus(DMA2_Stream0, DMA_IT_HTIF0) == SET)  
+	{
+		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_HTIF0);
+		ADC_Status.nSFlag = 1;
+		ADC_Status.nID++;
+	}
+	
 	if (DMA_GetITStatus(DMA2_Stream0, DMA_IT_TCIF0) == SET)  
 	{
 		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_TCIF0);
-		if(DMA_GetCurrentMemoryTarget(DMA2_Stream0) == 1) //
-		{
-			ADC_Status.nSFlag = 1;
-			ADC_Status.nID++;
-			
-		}else{
-			ADC_Status.nSFlag = 2;
-			ADC_Status.nID++;
-		}
-
-//		ADC_Status.nPos   = DMA_GetCurrDataCounter(DMA2_Stream0);
-//		printf("%d-%d\r\n", (int)IT_SYS_GetTicks(), ADC_Status.nPos);
-		//DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_TCIF0); 
-	}	
+		ADC_Status.nSFlag = 2;
+		ADC_Status.nID++;
+	}
+		
+// all
+//	if (DMA_GetITStatus(DMA2_Stream0, DMA_IT_TCIF0) == SET)  
+//	{
+//		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_TCIF0);
+//		if(DMA_GetCurrentMemoryTarget(DMA2_Stream0) == 1) //
+//		{
+//			ADC_Status.nSFlag = 1;
+//			ADC_Status.nID++;
+//			
+//		}else{
+//			ADC_Status.nSFlag = 2;
+//			ADC_Status.nID++;
+//		}
+//	}	
 }
 
 

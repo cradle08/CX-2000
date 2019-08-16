@@ -14,12 +14,12 @@ typedef struct{
 	UINT32 nSendID;
 }ADC_Status_InitTypeDef;
 #define ADC_BUFFER_LEN		512
-#define ADC_BUFFER_LEN_HALF	 256
+#define ADC_BUFFER_LEN_HALF	 (ADC_BUFFER_LEN/2)
 
 extern IO_ ADC_Status_InitTypeDef ADC_Status;
 //extern UINT16 g_ADC_Buffer[ADC_BUFFER_LEN];
 extern UINT16 g_ADC_Buffer[ADC_BUFFER_LEN_HALF];
-extern UINT16 g_ADC_Buffer_2[ADC_BUFFER_LEN_HALF];
+//extern UINT16 g_ADC_Buffer_2[ADC_BUFFER_LEN_HALF];
 
 
 void ADC1_Init(void);
