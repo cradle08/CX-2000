@@ -146,6 +146,12 @@ void ADC1_Init(void)
 	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
+	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_6;//GPIO_Pin_5, PA5, PA6
+	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
 	//ADC1
 	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC1, ENABLE);
 	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC1, DISABLE);
@@ -157,19 +163,30 @@ void ADC1_Init(void)
 	ADC_CommonInit(&ADC_CommonInitStructure);
 	// ADC Set
 	ADC_InitStructure.ADC_Resolution	= ADC_Resolution_12b;
+#if DOUBLE_ADC_CHANNEL
 	ADC_InitStructure.ADC_ScanConvMode  = DISABLE;
+	ADC_InitStructure.ADC_NbrOfConversion = 2;
+#else
+	ADC_InitStructure.ADC_ScanConvMode  = DISABLE;
+	ADC_InitStructure.ADC_NbrOfConversion = 1;
+#endif
 	ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 	ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
 	ADC_InitStructure.ADC_ExternalTrigConv  = ADC_ExternalTrigConv_T1_CC1;
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;//ADC_DataAlign_Left;//ADC_DataAlign_Right;
-	ADC_InitStructure.ADC_NbrOfConversion = 1;
 	ADC_Init(ADC1, &ADC_InitStructure);	
 	ADC_Cmd(ADC1, ENABLE);
 	
 	ADC1_DMA_Config();
 	ADC_DMACmd(ADC1, ENABLE);
 	
+#if DOUBLE_ADC_CHANNEL
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_6, 2, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
+#else
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
+#endif
+
 	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 	//ADC_SoftwareStartConv(ADC1);
 }
