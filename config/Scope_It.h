@@ -7,7 +7,7 @@
 #include "MyType.h"
 
 
-#define  DOUBLE_ADC_CHANNEL		 1
+#define  DOUBLE_ADC_CHANNEL		 0
 #define  INTERRUPT_OUTPUT        0
 
 

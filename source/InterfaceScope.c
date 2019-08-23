@@ -1562,18 +1562,30 @@ UINT8  HW_EN_WBC(enum eFlag bOn)
 //
 void  HW_Start_WBC(void)
 {
+#if 0
     HW_SW_AdcWBC(e_True);          /* switch on : WBC and RBC */
     HW_SW_AdcRBC(e_False);		   // RBC is back channel for WBC
     HW_EN_WBC(e_True);             /* get the ADC data */
+#else	
+	memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
+	ADC1_Init();
+	ADC_SoftwareStartConv(ADC1);
+#endif
 }
 
 //
 void  HW_End_WBC(void)
 {
+#if 0
     HW_SW_AdcWBC(e_False);
     HW_SW_AdcRBC(e_False);	// RBC is back channel for WBC
     // close the ADC channel
     HW_EN_WBC(e_False);
+#else
+	ADC_Cmd(ADC1, DISABLE);
+	ADC_DMACmd(ADC1, DISABLE);
+	DMA_Cmd(DMA2_Stream0, DISABLE);
+#endif
 }
 
 //
@@ -1789,6 +1801,30 @@ _EXT_ UINT8  HW_LWIP_Working_Recv_Handle(UINT32 nTickList, UINT32 nTickAdc)
 //
 UINT8  HW_LWIP_Working(UINT32 nTickList, UINT32 nTickAdc,  EN_FPGA_DATA_FLAG eFlag)
 {
+	//memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
+	//ADC1_Init();
+	//ADC_SoftwareStartConv(ADC1);
+#if 1
+	if(ADC_Status.nSFlag == 1)
+	{
+		//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, g_ADC_Buffer);
+		ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, g_ADC_Buffer);
+		ADC_Status.nSFlag = 0xFF;
+		//printf()
+		memset(g_ADC_Buffer, 0, ADC_BUFFER_LEN_HALF);
+		ADC_Status.nSendID++;
+		g_Udp_Count++;
+		//g_Udp_Count = ADC_Status.nSendID++;
+	}else if(ADC_Status.nSFlag == 2){
+		ADC_Send(CMD_DATA_TEST_WBC, ADC_Status.nID, &g_ADC_Buffer[ADC_BUFFER_LEN_HALF]);
+		ADC_Status.nSFlag = 0xFF;
+		memset(&g_ADC_Buffer[ADC_BUFFER_LEN_HALF], 0, ADC_BUFFER_LEN_HALF);
+		ADC_Status.nSendID++;
+		g_Udp_Count++;// ADC_Status.nSendID++;
+	}	
+	
+#else
+	
     IO_ UINT8 chReturn;
 	IO_ UINT16 nTemp;
     //=====================================================
@@ -1832,8 +1868,8 @@ UINT8  HW_LWIP_Working(UINT32 nTickList, UINT32 nTickAdc,  EN_FPGA_DATA_FLAG eFl
 		if(eFlag == EN_SEND_FPGA_DATA){
 			
 			g_Udp_Count++;
-			if(g_Udp_Count == 1) printf("\r\n ticks=%d, udp=%d\r\n", (int)nTickList, (int)g_Udp_Count);
-			if(g_Udp_Count == 2) printf("\r\n ticks=%d, udp=%d\r\n", (int)nTickAdc, (int)g_Udp_Count);
+//			if(g_Udp_Count == 1) printf("\r\n ticks=%d, udp=%d\r\n", (int)nTickList, (int)g_Udp_Count);
+//			if(g_Udp_Count == 2) printf("\r\n ticks=%d, udp=%d\r\n", (int)nTickAdc, (int)g_Udp_Count);
 			s_anBufNet[2] = (UINT16)(((g_Udp_Count&0xFF000000) >> 24) | ((g_Udp_Count&0x00FF0000) >> 8));
 			s_anBufNet[3] = (UINT16)(((g_Udp_Count&0x000000FF) << 8) | ((g_Udp_Count&0x0000FF00)>>8));
 			chReturn = udp_echoserver_senddata(((UINT8 *)(s_anBufNet + 0)), ((s_nDataLen + 4) * 2));
@@ -1868,7 +1904,10 @@ UINT8  HW_LWIP_Working(UINT32 nTickList, UINT32 nTickAdc,  EN_FPGA_DATA_FLAG eFl
     }
 #endif
 
-    return e_Feedback_Success;
+    //return e_Feedback_Success;
+	
+#endif
+	return e_Feedback_Success;
 }
 
 

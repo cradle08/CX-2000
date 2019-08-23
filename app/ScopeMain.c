@@ -184,7 +184,7 @@ void ADC1_Init(void)
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_6, 2, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 #else
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_15Cycles); //ADC_SampleTime_3Cycles
 #endif
 
 	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
@@ -245,7 +245,7 @@ int main(void)
     start_run();
     /* test(); */
 	ADC1_Init();
-    printf("\r\n ...... Readying ......\r\n");
+    printf("\r\n ...... Readying ...DATE=%s......\r\n", __DATE__);
 //	Clear_FPGA_FIFO_Data();
 //	g_AirLight_Flag = e_Feedback_Fail;
 //	if(e_Feedback_Success == AirLight_Self_Check(e_SelfCheck_Call))
