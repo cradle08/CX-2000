@@ -14,6 +14,7 @@
 #include "SystemScope.h"
 //
 #include "StorageManagement.h"
+#include "Scope_It.h"
 
 #endif
 

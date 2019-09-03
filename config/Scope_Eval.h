@@ -87,6 +87,10 @@ typedef enum
 //
 #define MS_OF_CCLK_COUNTING        8000   // 300
 
+#define  ADC_48V_CHANNEL    ADC_Channel_8
+#define  ADC_XK_CHANNEL  	ADC_Channel_9
+#define  ADC_PRESS_CHANNEL  ADC_Channel_10
+
 //-----------------------------------------------------------------------------------------
 // com test in_out
 #define COM_NUM                     3  // 

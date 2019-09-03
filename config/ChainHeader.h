@@ -26,8 +26,10 @@
 #include "InterruptBufferCircle.h"
 //
 #include "SpiFlash.h"
+#include "ProcessScope.h"
 
-
+#define USE_STM32F407_ONLY		1
+#define  DOUBLE_ADC_CHANNEL		0
 
 
 
