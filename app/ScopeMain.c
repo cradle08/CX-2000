@@ -184,7 +184,7 @@ void ADC1_Init(void)
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_6, 2, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 #else
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_15Cycles); //ADC_SampleTime_3Cycles
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 #endif
 
 	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
@@ -210,21 +210,6 @@ void DMA2_Stream0_IRQHandler(void)
 		ADC_Status.nSFlag = 2;
 		ADC_Status.nID++;
 	}
-		
-// all
-//	if (DMA_GetITStatus(DMA2_Stream0, DMA_IT_TCIF0) == SET)  
-//	{
-//		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_TCIF0);
-//		if(DMA_GetCurrentMemoryTarget(DMA2_Stream0) == 1) //
-//		{
-//			ADC_Status.nSFlag = 1;
-//			ADC_Status.nID++;
-//			
-//		}else{
-//			ADC_Status.nSFlag = 2;
-//			ADC_Status.nID++;
-//		}
-//	}	
 }
 
 

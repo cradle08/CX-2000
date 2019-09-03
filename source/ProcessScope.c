@@ -598,7 +598,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 //
             }
 			break;
-            case CMD_CTRL_TEST_WBC://CMD_CTRL_NET_TEST://CMD_CTRL_TEST_WBC: // count func
+            case CMD_CTRL_NET_TEST://CMD_CTRL_NET_TEST://CMD_CTRL_TEST_WBC: // count func
             {
                 nCommand  = CMD_CTRL_TEST_WBC;
                 // bSendBack = e_True;
@@ -631,8 +631,9 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				Reset_Udp_Count(0);
 			}
 			break;
-			case CMD_CTRL_NET_TEST://CMD_CTRL_TEST_WBC:
+			case CMD_CTRL_TEST_WBC: //CMD_CTRL_TEST_WBC: //CMD_CTRL_TEST_WBC
 			{
+				UINT32 nCurTicks, nTempTicks;
 			
 //				nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
 //				nWord  = PL_UnionFourBytes(*(pchCmdBuf + 10),*(pchCmdBuf + 11),\
@@ -640,11 +641,15 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 //				printf("Send Packet Test: time=%d, num=%d\r\n", nShort, (int)nWord);
 //				Send_Packets_Test(nShort, nWord);
 				
-				//ADC1_Init();
+				IT_ADC_SetTicks(0);            /* reset the ADC-TICK */
+				//IT_LIST_SetTicks(IT_LIST_GetTicks() - (TIME_TS_ACTION_ON - TIME_TS_ACTION_OFF)); /* 根据上位机算法要求，统计开阀门的实际时间 */
+				IT_LIST_SetTicks(4501);
+				nCurTicks = IT_SYS_GetTicks();				
+				nTempTicks = nCurTicks;
 		
 				//ADC_SoftwareStartConv(ADC1);
-				memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
-				printf("ADC Start Ticks T=%d\r\n", (int)IT_SYS_GetTicks());
+				//memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
+				printf("ADC Start Ticks T=%d\r\n", (int)nCurTicks);
 				
 				//ADC_DMACmd(ADC1, ENABLE);
 				//ADC_Cmd(ADC1, ENABLE);
@@ -653,9 +658,10 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				//IT_SYS_DlyMs(2);
 				//ADC_SoftwareStartConv(ADC1);
 				memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
+				
 				ADC1_Init();
 				ADC_SoftwareStartConv(ADC1);
-				while(ADC_Status.nID < 40000)
+				while(nCurTicks < nTempTicks + 8000)//while(ADC_Status.nID < 40000)
 				{
 					if(ADC_Status.nSFlag == 1)
 					{
@@ -670,7 +676,8 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 						ADC_Status.nSFlag = 0xFF;
 						memset(&g_ADC_Buffer[ADC_BUFFER_LEN_HALF], 0, ADC_BUFFER_LEN_HALF);
 						ADC_Status.nSendID++;
-					}	
+					}
+					nCurTicks = IT_SYS_GetTicks();							
 				}
 				ADC_Cmd(ADC1, DISABLE);
 				ADC_DMACmd(ADC1, DISABLE);
