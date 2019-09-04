@@ -695,6 +695,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\config\SpiFlash.c</FilePath>
             </File>
+            <File>
+              <FileName>driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\config\driver.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
