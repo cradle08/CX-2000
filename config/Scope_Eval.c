@@ -288,6 +288,15 @@ void EVAL_Init(void)
 	
 #if USE_STM32F407_ONLY
 	ADC1_Init();
+	ADC2_Init();
+	Elec_Init();
+	Beep_Init();
+	Pump_init();
+	Valve_Init();
+	OC_Init();
+	Fix_Motor_Init();
+	OutIn_Motor_Init();
+	
 #endif
 }
 
@@ -378,7 +387,7 @@ void EVAL_InputInit(Input_TypeDef eIn, InModel_Typedef eModel)
   
     // 1. enable the input pin Clock 
     RCC_AHB1PeriphClockCmd(IN_CLK[eIn], ENABLE);
-  
+	
     // 2. configure the pin as input floating 
 	GPIO_InitStructure.GPIO_Pin = IN_PIN[eIn];  
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;   

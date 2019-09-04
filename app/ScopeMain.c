@@ -109,7 +109,6 @@ int main(void)
 		g_AirLight_Flag = e_Feedback_Success;
 //	}
 
-
     while (1)
     {
         HW_LWIP_MainLine();

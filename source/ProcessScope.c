@@ -487,6 +487,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             {
                 if (0 == (*(pchCmdBuf + 9)))
                 {
+					//#if USE_STM32F407_ONLY
                     HW_Valve_Off(*(pchCmdBuf + 8));
                 }
                 else
@@ -800,6 +801,11 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 //				Send_Packets_Test(nShort, nWord);
 //			}
 //			break;
+			case CMD_CTRL_DRIVER_DEBUG:
+			{
+				Driver_Debug(*(pchCmdBuf + 8));
+			}
+			break;
             default:
             {
                 break;

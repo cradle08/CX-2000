@@ -58,6 +58,7 @@ void ADC1_Init(void);
 #define    CMD_CTRL_VALVE2_CHECK   		0x00000707 
 #define    CMD_CTRL_PART_TEST   		0x00000708
 #define    CMD_CTRL_NET_TEST   		    0x00000808
+#define    CMD_CTRL_DRIVER_DEBUG		0x00000809
 // debug cmd
 #define    CMD_CTRL_DEBUG_GET_PRESS 0x00000709 // get the press value
 
