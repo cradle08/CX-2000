@@ -6,7 +6,10 @@
 #include "MyType.h"       // ---
 #include <stdio.h>        // for "printf" debug
 
+#define ADC2_CHECK_NUM	2
+
 extern IO_ UINT8 g_Elec_Status;
+extern IO_ UINT16 g_ADC2_Value[ADC2_CHECK_NUM];
 
 // elec PE0
 #define ELEC_PORT			GPIOE
@@ -28,11 +31,12 @@ extern IO_ UINT8 g_Elec_Status;
 #define PUMP_CLK_PORT			GPIOD
 #define PUMP_CLK_PIN			GPIO_Pin_13
 #define PUMP_CLK_SRC			RCC_AHB1Periph_GPIOD
-
-#define PUMP_PWM_TIM			TIM14
-#define PUMP_PWM_TIM_SRC		RCC_APB1Periph_TIM14	
-#define PUMP_PWM_TIM_ARR		499
-#define PUMP_PWM_TIM_PSC		83
+#define PUMP_CLK_PIN_AF			GPIO_PinSource13
+#define PUMP_CLK_PORT_AF		GPIO_AF_TIM4
+#define PUMP_PWM_TIM			TIM4
+#define PUMP_PWM_TIM_SRC		RCC_APB1Periph_TIM4	
+#define PUMP_PWM_TIM_ARR		24999 //25000
+#define PUMP_PWM_TIM_PSC		41    //42
 
 #define PUMP_DIR_PORT			GPIOD
 #define PUMP_DIR_PIN			GPIO_Pin_4
@@ -80,12 +84,12 @@ extern IO_ UINT8 g_Elec_Status;
 
 // OC for out motor, PE3
 #define OUT_OC_CLK_PORT			GPIOE
-#define OUT_OC_CLK_PIN			GPIO_Pin_3
+#define OUT_OC_CLK_PIN			GPIO_Pin_4
 #define OUT_OC_CLK_SRC			RCC_AHB1Periph_GPIOE
 
 // OC for in motor, PE4
 #define IN_OC_CLK_PORT			GPIOE
-#define IN_OC_CLK_PIN			GPIO_Pin_4
+#define IN_OC_CLK_PIN			GPIO_Pin_3
 #define IN_OC_CLK_SRC			RCC_AHB1Periph_GPIOE
 
 // Digital Register(SPI3), PC10_CLK,PC12_MOSI,PC13_CS
@@ -104,10 +108,34 @@ extern IO_ UINT8 g_Elec_Status;
 #define D_REGISTER_SPI_SRC 		RCC_APB1Periph_SPI3
 //#define D_REGISTER_CLK_SPI_PINSRC 
 
+
+#define FIX_MOTOR_PULSE_UP_TIME			300
+#define FIX_MOTOR_PULSE_DOWN_TIME		500
+#define OUTIN_MOTOR_PULSE_UP_TIME		300
+#define OUTIN_MOTOR_PULSE_DOWN_TIME		500
+
+#define	OUTIN_MOTOR_HOME_TIME	10000
+
+// for oc, 0-in, 1-lift
 enum{
 	EN_CLOSE	= 0,
 	EN_OPEN		= 1
 };
+
+enum{
+	EN_VALVE_LIQUID = 0,
+	EN_VALVE_AIR    = 1
+};
+
+enum{
+	EN_ANTI_CLOCK_WISE = 0,
+	EN_CLOCK_WISE = 1
+};
+
+typedef enum{
+	EN_MODE_NORMAL = 0,
+	EN_MODE_SELF_CHECK = 1
+}eModeType;
 
 void ADC1_Init(void);
 void ADC2_Init(void);
@@ -125,11 +153,13 @@ void TIM4_PWM_Init(UINT32 Arr, UINT32 Psc);
 void Pump_Speed_Set(UINT16 nSpeed);
 void Pump_AntiClockWise(void);
 void Pump_ClockWise(void);
-void Pump_Run(UINT16 nUp, UINT16 nDown);
+void Pump_Exec(UINT8 nDir, UINT16 nFreq);
 
 void Valve_Init(void);
 void Valve_Air_Exec(UINT8 nOpt);
 void Valve_Liquid_Exec(UINT8 nOpt);
+void Valve_Exec(UINT8 nIndex, UINT8 nOpt);
+
 
 void OC_Init(void);
 UINT8 Get_Fix_OC_Status(void);
@@ -149,7 +179,11 @@ void OutIn_Motor_Disable(void);
 void OutIn_Motor_AntiClockWise(void);
 void OutIn_Motor_ClockWise(void);
 void OutIn_Motor_Run(UINT16 nUp, UINT16 nDown);
+UINT8 OutIn_Motor_Home(eModeType eMode);
+UINT8 OutIn_Motor_Out(eModeType eMode);
 
+void DResistor_Init(void);
+void DResistor_Set(UINT8 nIndex, UINT8 nVal);
 
 
 void Driver_Debug(UINT8 nIndex);

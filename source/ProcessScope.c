@@ -485,15 +485,19 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             //
             case CMD_CTRL_VALVE:
             {
-                if (0 == (*(pchCmdBuf + 9)))
-                {
-					//#if USE_STM32F407_ONLY
-                    HW_Valve_Off(*(pchCmdBuf + 8));
-                }
-                else
-                {
-                    HW_Valve_On(*(pchCmdBuf + 8));
-                }
+				#if USE_STM32F407_ONLY
+					Valve_Exec(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+				#else
+					if (0 == (*(pchCmdBuf + 9)))
+					{
+						//#if USE_STM32F407_ONLY
+						HW_Valve_Off(*(pchCmdBuf + 8));
+					}
+					else
+					{
+						HW_Valve_On(*(pchCmdBuf + 8));
+					}
+				#endif
                 //
             }
 			break;
@@ -505,81 +509,124 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                                           *(pchCmdBuf + 10),
                                           *(pchCmdBuf + 11));
                 //
-                HW_PUMP_Pulse(nWord, e_Dir_Pos);
+				#if USE_STM32F407_ONLY
+					Pump_Exec(e_Dir_Pos, nWord);
+				#else
+					HW_PUMP_Pulse(nWord, e_Dir_Pos);
+				#endif
                 //
             }
 			break;
             //
             case CMD_CTRL_MOT_IN:
             {
-                MT_X_Home(e_NormalCheck_Call); // go home
+				#if USE_STM32F407_ONLY
+					OutIn_Motor_Home(EN_MODE_NORMAL);
+				#else
+					MT_X_Home(e_NormalCheck_Call); // go home
+				#endif
                 //
             }
 			break;
             //
             case CMD_CTRL_MOT_OUT:
             {
-                MT_X_MoveToPosRel(e_NormalCheck_Call); // out
+				#if USE_STM32F407_ONLY
+					//OutIn_Motor_Out(EN_MODE_NORMAL);
+				#else
+					MT_X_MoveToPosRel(e_NormalCheck_Call); // out
+				#endif
                 //
             }
 			break;
             case CMD_CTRL_MOT_RELEASE:  /* 释放芯片 */
 			{
-                MT_Y_Home(e_NormalCheck_Call);
+				#if USE_STM32F407_ONLY
+				
+				#else
+					MT_Y_Home(e_NormalCheck_Call);
+				#endif
 			}
             break;
             case CMD_CTRL_MOT_LOCK:     /* 锁定芯片 */
 			{
-                MT_Y_MoveToPosRel(e_NormalCheck_Call);
+				#if USE_STM32F407_ONLY
+				
+				#else
+					MT_Y_MoveToPosRel(e_NormalCheck_Call);
+				#endif
 			}
             break;
             case CMD_CTRL_MOT_IN_ONLY:  /* 单独驱动大电机进仓 */
 			{
-                MT_X_Home_only();
+				#if USE_STM32F407_ONLY
+				
+				#else
+					MT_X_Home_only();
+				#endif
 			}
             break;
             case CMD_CTRL_MOT_OUT_ONLY: /* 单独驱动大电机出仓 */
 			{
-                MT_X_MoveToPosRel_only();
+				#if USE_STM32F407_ONLY
+				
+				#else
+					MT_X_MoveToPosRel_only();
+				#endif
 			}
             break;
 			case CMD_CTRL_MOT_X_IN_ADD:
 			{
 				// 
-				nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
-				g_Record_Param.nXAddStep = nShort;
-				g_Record_Param.nFlag = FLASH_INIT_FLAG;
-				printf("Set Moto X Add Step%d\r\n", g_Record_Param.nXAddStep);
-				Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
-				Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_MOTO_X_IN_ADD, e_Feedback_Success);
+				#if USE_STM32F407_ONLY
+				
+				#else
+					nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+					g_Record_Param.nXAddStep = nShort;
+					g_Record_Param.nFlag = FLASH_INIT_FLAG;
+					printf("Set Moto X Add Step%d\r\n", g_Record_Param.nXAddStep);
+					Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
+					Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_MOTO_X_IN_ADD, e_Feedback_Success);
+				#endif
 			}
 			break;
             case CMD_CTRL_REGISTER:
             {
 				// index = 0: WBC  transmission gain
-                HW_ADJ_SetResistor(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
-				// todo
-				if(*(pchCmdBuf + 8) == 0)
-				{
-					g_Record_Param.nWBC =  *(pchCmdBuf + 9);
-					g_Record_Param.nFlag = FLASH_INIT_FLAG;
-					printf("Set WBC Value=%d\r\n", g_Record_Param.nWBC);
-					Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
-					Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_WBC_SET, e_Feedback_Success);
-				}
-                //
+				#if USE_STM32F407_ONLY
+					DResistor_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+				#else
+					HW_ADJ_SetResistor(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+					// todo
+					if(*(pchCmdBuf + 8) == 0)
+					{
+						g_Record_Param.nWBC =  *(pchCmdBuf + 9);
+						g_Record_Param.nFlag = FLASH_INIT_FLAG;
+						printf("Set WBC Value=%d\r\n", g_Record_Param.nWBC);
+						Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
+						Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_WBC_SET, e_Feedback_Success);
+					}
+                #endif
             }
 			break;
 			case CMD_CTRL_TRANSMISSION_GAIN: // transmission gain
 			{
 				printf("WBC Gain No=%d, Val=%d\r\n", \
 					*(pchCmdBuf + 8), *(pchCmdBuf + 9));
-				Transmission_Gain_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+				#if USE_STM32F407_ONLY
+				
+				#else
+					Transmission_Gain_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+				#endif
 			}
 			break;
             case CMD_CTRL_WBC_ENABLE: //case CMD_CTRL_WBC_SWITCH:
             {
-                HW_EN_WBC((enum eFlag) * (pchCmdBuf + 8));
+				#if USE_STM32F407_ONLY
+				
+				#else
+					HW_EN_WBC((enum eFlag) * (pchCmdBuf + 8));
+				#endif
             }
 			break;
             //
@@ -603,18 +650,18 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             {
                 nCommand  = CMD_CTRL_TEST_WBC;
                 // bSendBack = e_True;
-#ifdef DEBUG_INFO_UP_LOAD
-                if(e_Feedback_Success != MSG_TestingFunc((UINT8*)g_achFbkSdLogBuf, &nParaLen))
-				{
-#else
-				if(e_Feedback_Success != MSG_TestingFunc())
-				{
-#endif
-					HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);
-					HW_Valve_Off(INDEX_VALVE_PUMP);
-					HW_Valve_Off(INDEX_VALVE_WBC);
-				}
-#ifdef DEBUG_INFO_UP_LOAD
+				#if USE_STM32F407_ONLY
+				
+				#else
+					if(e_Feedback_Success != MSG_TestingFunc((UINT8*)g_achFbkSdLogBuf, &nParaLen))
+					{
+
+
+						HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);
+						HW_Valve_Off(INDEX_VALVE_PUMP);
+						HW_Valve_Off(INDEX_VALVE_WBC);
+					}
+				#endif
 				printf("adc end: id=%d, sendid=%d\r\n", \
 						(int)ADC_Status.nID, (int)ADC_Status.nSendID);
 				// send debug info for count
@@ -628,7 +675,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				}
 				printf("debug msg len: %d\r\n", nParaLen);
 				nParaLen = 0;
-#endif              
+          
 				Reset_Udp_Count(0);
 			}
 			break;
@@ -739,28 +786,48 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
 			case CMD_CTRL_MOT_OUT_CHECK:
 			{
-				MT_X_OUT_Self_Check(e_SelfCheck_Call);
+				#if USE_STM32F407_ONLY
+				
+				#else
+					MT_X_OUT_Self_Check(e_SelfCheck_Call);
+				#endif
 			}
 			break;
 			case CMD_CTRL_MOT_IN_CHECK:
 			{
-				MT_X_IN_Self_Check(e_SelfCheck_Call);
+				#if USE_STM32F407_ONLY
+				
+				#else
+					MT_X_IN_Self_Check(e_SelfCheck_Call);
+				#endif
 			}
 			break;
 
 			case CMD_CTRL_WBC_48V_CHECK:
 			{		
-				WBC_48V_Self_Check();
+				#if USE_STM32F407_ONLY
+				
+				#else
+					WBC_48V_Self_Check();
+				#endif
 			}
 			break;
 			case CMD_CTRL_BUILD_PRESS_CHECK:
 			{
-				Build_Press_Self_Check();
+				#if USE_STM32F407_ONLY
+				
+				#else
+					Build_Press_Self_Check();
+				#endif
 			}
 			break;
 			case CMD_CTRL_AIRLIGHT_CHECK:
 			{
-				AirLight_Self_Check(e_SelfCheck_Call);
+				#if USE_STM32F407_ONLY
+				
+				#else
+					AirLight_Self_Check(e_SelfCheck_Call);
+				#endif
 			}
 			break;
 			case CMD_CTRL_GPUMP_CHECK:
@@ -775,7 +842,11 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
 			case CMD_CTRL_VALVE2_CHECK:
 			{
-				Valve2_Self_Check();
+				#if USE_STM32F407_ONLY
+				
+				#else
+					Valve2_Self_Check();
+				#endif
 			}
 			break;
 			case CMD_CTRL_DEBUG_GET_PRESS:
@@ -825,10 +896,14 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 nCommand  = CMD_STATUS_PRESSURE;
                 bSendBack = e_True;
                 //
-                nShort = HW_ADC_SpiGetADC(INDEX_PRESS);  // 0: HGB, 1: press1
-                *(pchFbkBuf + 0) = (UINT8)((nShort >> 8) & 0xff);
-                *(pchFbkBuf + 1) = (UINT8)((nShort >> 0) & 0xff);
-                nParaLen         = 2;
+				#if USE_STM32F407_ONLY
+				
+				#else
+					nShort = HW_ADC_SpiGetADC(INDEX_PRESS);  // 0: HGB, 1: press1
+					*(pchFbkBuf + 0) = (UINT8)((nShort >> 8) & 0xff);
+					*(pchFbkBuf + 1) = (UINT8)((nShort >> 0) & 0xff);
+					nParaLen         = 2;
+				#endif
             }
 			break;
             case CMD_QUERY_ELECTRODE:
@@ -836,10 +911,14 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 nCommand  = CMD_STATUS_ELECTRODE;
                 bSendBack = e_True;
                 //
-                *(pchFbkBuf + 0) = HW_LEVEL_GetElectrode(0);
-                *(pchFbkBuf + 1) = HW_LEVEL_GetElectrode(1);
-                *(pchFbkBuf + 2) = HW_LEVEL_GetElectrode(2);
-                nParaLen         = 3;
+				#if USE_STM32F407_ONLY
+				
+				#else
+					*(pchFbkBuf + 0) = HW_LEVEL_GetElectrode(0);
+					*(pchFbkBuf + 1) = HW_LEVEL_GetElectrode(1);
+					*(pchFbkBuf + 2) = HW_LEVEL_GetElectrode(2);
+					nParaLen         = 3;
+				#endif
             }
 			break;
             case CMD_QUERY_OC:
@@ -847,11 +926,15 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 nCommand  = CMD_STATUS_OC;
                 bSendBack = e_True;
                 //
-                *(pchFbkBuf + 0) = HW_LEVEL_GetOC(0); //
-                *(pchFbkBuf + 1) = HW_LEVEL_GetOC(1); // out oc
-                *(pchFbkBuf + 2) = HW_LEVEL_GetOC(2); // 
-                *(pchFbkBuf + 3) = HW_LEVEL_GetOC(3);
-                nParaLen         = 4;
+				#if USE_STM32F407_ONLY
+				
+				#else
+					*(pchFbkBuf + 0) = HW_LEVEL_GetOC(0); //
+					*(pchFbkBuf + 1) = HW_LEVEL_GetOC(1); // out oc
+					*(pchFbkBuf + 2) = HW_LEVEL_GetOC(2); // 
+					*(pchFbkBuf + 3) = HW_LEVEL_GetOC(3);
+					nParaLen         = 4;
+				#endif
             }
 			break;
             case CMD_QUERY_EDTION:
@@ -870,18 +953,21 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			{
                 bSendBack = e_True;
                 nCommand  = CMD_STATUS_MOT;
-
-                if (0 == *(pchCmdBuf +  8))  /* 进出仓电机 */
-                {
-                    *(pchFbkBuf + 0) = 0;
-                    *(pchFbkBuf + 1) = MT_X_get_posi();
-                }
-                else
-                {
-                    *(pchFbkBuf + 0) = 1;
-                    *(pchFbkBuf + 1) = MT_Y_get_posi();
-                }
-                nParaLen = 2;
+				#if USE_STM32F407_ONLY
+				
+				#else
+					if (0 == *(pchCmdBuf +  8))  /* 进出仓电机 */
+					{
+						*(pchFbkBuf + 0) = 0;
+						*(pchFbkBuf + 1) = MT_X_get_posi();
+					}
+					else
+					{
+						*(pchFbkBuf + 0) = 1;
+						*(pchFbkBuf + 1) = MT_Y_get_posi();
+					}
+					nParaLen = 2;
+				#endif
 			}
             break;
             case CMD_QUERY_PUMP_SPEED:  /* 查询泵转速 */
@@ -2882,10 +2968,6 @@ _EXT_ UINT32 WBC_48V_Self_Check(void)
 	nVCheck = Get_WBC_V_Value();
 	nVIn = nVCheck*422/22;
 	
-//	Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_WBC_48V, nWord);
-//	Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_WBC_48V, nVCheck);
-//	Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_WBC_48V, nVIn);
-	
     printf("WBC_48V Slef Check: wbc_v=%d, 48v=%d\r\n",\
 					 (int)nVCheck, (int)nVIn);
 	if(nVIn >= 45000 && nVIn <= 55000)
@@ -2901,26 +2983,46 @@ _EXT_ UINT32 WBC_48V_Self_Check(void)
 _EXT_ UINT8 Valve1_Self_Check(void)
 {
 	UINT8 i;
-    for(i = 0; i < 3; i++)
-	{
-		HW_Valve_On(VALVE_PRESSSURE);
-		IT_SYS_DlyMs(1000);
-		HW_Valve_Off(VALVE_PRESSSURE);
-		IT_SYS_DlyMs(1000);
-	}
+	#if USE_STM32F407_ONLY
+		for(i = 0; i < 3; i++)
+		{
+			Valve_Liquid_Exec(EN_OPEN);
+			IT_SYS_DlyMs(1000);
+			Valve_Liquid_Exec(EN_CLOSE);
+			IT_SYS_DlyMs(1000);
+		}
+	#else
+		for(i = 0; i < 3; i++)
+		{
+			HW_Valve_On(VALVE_PRESSSURE);
+			IT_SYS_DlyMs(1000);
+			HW_Valve_Off(VALVE_PRESSSURE);
+			IT_SYS_DlyMs(1000);
+		}
+	#endif
 	return e_Feedback_Success;
 }
 
 _EXT_ UINT8 Valve2_Self_Check(void)
 {
 	UINT8 i;
-	for(i = 0; i < 3; i++)
-	{
-		HW_Valve_On(VALVE_SAMPLE);
-		IT_SYS_DlyMs(1000);
-		HW_Valve_Off(VALVE_SAMPLE);
-		IT_SYS_DlyMs(1000);
-	}
+	#if USE_STM32F407_ONLY
+		for(i = 0; i < 3; i++)
+		{
+			Valve_Liquid_Exec(EN_OPEN);
+			IT_SYS_DlyMs(1000);
+			Valve_Liquid_Exec(EN_CLOSE);
+			IT_SYS_DlyMs(1000);
+		}
+	#else
+		for(i = 0; i < 3; i++)
+		{
+			HW_Valve_On(VALVE_SAMPLE);
+			IT_SYS_DlyMs(1000);
+			HW_Valve_Off(VALVE_SAMPLE);
+			IT_SYS_DlyMs(1000);
+		}
+	#endif
 	return e_Feedback_Success;
 }
 
@@ -2953,17 +3055,26 @@ _EXT_ UINT8 Pump_Self_Check(void)
 	
 	StartTicks = IT_SYS_GetTicks();
 	EndTicks = StartTicks;
-	HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);
 	
-	//HW_Valve_On(INDEX_VALVE_PUMP); 
-	
-	while((EndTicks - StartTicks) <= PUMP_SELF_CHECK_TIME)
-	{
-		EndTicks = IT_SYS_GetTicks();
-		IT_SYS_DlyMs(1);
-	}
-	HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
-	//HW_Valve_Off(INDEX_VALVE_PUMP); 
+	#if USE_STM32F407_ONLY
+		Pump_Exec(e_Dir_Pos ,PUMP_PRESS_FREQ);
+		//HW_Valve_On(INDEX_VALVE_PUMP); 
+		while((EndTicks - StartTicks) <= PUMP_SELF_CHECK_TIME)
+		{
+			EndTicks = IT_SYS_GetTicks();
+			IT_SYS_DlyMs(1);
+		}
+		Pump_Exec(e_Dir_Pos ,PUMP_PRESS_OFF);     // off
+	#else
+		HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);
+		//HW_Valve_On(INDEX_VALVE_PUMP); 
+		while((EndTicks - StartTicks) <= PUMP_SELF_CHECK_TIME)
+		{
+			EndTicks = IT_SYS_GetTicks();
+			IT_SYS_DlyMs(1);
+		}
+		HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
+	#endif
 	
 	return e_Feedback_Success;
 }

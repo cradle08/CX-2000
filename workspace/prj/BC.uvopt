@@ -268,6 +268,102 @@
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
+        <Bp>
+          <Number>6</Number>
+          <Type>0</Type>
+          <LineNumber>2412</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>7</Number>
+          <Type>0</Type>
+          <LineNumber>2419</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>8</Number>
+          <Type>0</Type>
+          <LineNumber>2455</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>9</Number>
+          <Type>0</Type>
+          <LineNumber>2462</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>10</Number>
+          <Type>0</Type>
+          <LineNumber>2507</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>11</Number>
+          <Type>0</Type>
+          <LineNumber>2514</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\..\source\ProcessScope.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
@@ -348,10 +444,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>13</ColumnNumber>
+      <ColumnNumber>4</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>80</TopLine>
-      <CurrentLine>91</CurrentLine>
+      <TopLine>75</TopLine>
+      <CurrentLine>103</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\app\ScopeMain.c</PathWithFileName>
       <FilenameWithoutPath>ScopeMain.c</FilenameWithoutPath>
@@ -364,10 +460,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>4460996</ColumnNumber>
+      <ColumnNumber>4</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>357</TopLine>
+      <CurrentLine>368</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\core\system_stm32f4xx.c</PathWithFileName>
       <FilenameWithoutPath>system_stm32f4xx.c</FilenameWithoutPath>
@@ -420,10 +516,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>13</ColumnNumber>
+      <ColumnNumber>18</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>632</TopLine>
-      <CurrentLine>602</CurrentLine>
+      <TopLine>768</TopLine>
+      <CurrentLine>775</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\ProcessScope.c</PathWithFileName>
       <FilenameWithoutPath>ProcessScope.c</FilenameWithoutPath>
@@ -438,7 +534,7 @@
       <Focus>0</Focus>
       <ColumnNumber>30</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>48</TopLine>
+      <TopLine>49</TopLine>
       <CurrentLine>52</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\Protocol.c</PathWithFileName>
@@ -452,10 +548,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>22</ColumnNumber>
+      <ColumnNumber>19</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1017</TopLine>
-      <CurrentLine>1042</CurrentLine>
+      <TopLine>1694</TopLine>
+      <CurrentLine>1702</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\InterfaceScope.c</PathWithFileName>
       <FilenameWithoutPath>InterfaceScope.c</FilenameWithoutPath>
@@ -470,7 +566,7 @@
       <Focus>0</Focus>
       <ColumnNumber>28</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>50</TopLine>
+      <TopLine>51</TopLine>
       <CurrentLine>54</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\SamplingPort.c</PathWithFileName>
@@ -510,7 +606,7 @@
       <Focus>0</Focus>
       <ColumnNumber>3</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1347</TopLine>
+      <TopLine>1348</TopLine>
       <CurrentLine>1351</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\ETH_Driver\src\stm32f4x7_eth.c</PathWithFileName>
@@ -1044,10 +1140,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>47</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>188</TopLine>
-      <CurrentLine>189</CurrentLine>
+      <TopLine>153</TopLine>
+      <CurrentLine>173</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\HwLib\driver\src\stm32f4xx_syscfg.c</PathWithFileName>
       <FilenameWithoutPath>stm32f4xx_syscfg.c</FilenameWithoutPath>
@@ -1134,8 +1230,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>92</TopLine>
-      <CurrentLine>102</CurrentLine>
+      <TopLine>202</TopLine>
+      <CurrentLine>213</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\config\Scope_Eval.c</PathWithFileName>
       <FilenameWithoutPath>Scope_Eval.c</FilenameWithoutPath>
@@ -1164,10 +1260,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>76</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>410</TopLine>
-      <CurrentLine>411</CurrentLine>
+      <TopLine>411</TopLine>
+      <CurrentLine>413</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\config\BufferCircle.c</PathWithFileName>
       <FilenameWithoutPath>BufferCircle.c</FilenameWithoutPath>
@@ -1244,10 +1340,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>20</ColumnNumber>
+      <ColumnNumber>13</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>188</TopLine>
-      <CurrentLine>195</CurrentLine>
+      <TopLine>735</TopLine>
+      <CurrentLine>749</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\config\driver.c</PathWithFileName>
       <FilenameWithoutPath>driver.c</FilenameWithoutPath>
@@ -1764,10 +1860,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>47</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>1</TopLine>
-      <CurrentLine>1</CurrentLine>
+      <CurrentLine>8</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip-1.4.1\src\api\netdb.c</PathWithFileName>
       <FilenameWithoutPath>netdb.c</FilenameWithoutPath>
@@ -1838,7 +1934,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>166</TopLine>
+      <TopLine>167</TopLine>
       <CurrentLine>170</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\lwip_app\netconf.c</PathWithFileName>
