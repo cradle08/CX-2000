@@ -288,7 +288,7 @@ void EVAL_Init(void)
 	
 #if USE_STM32F407_ONLY
 	ADC1_Init();
-	ADC2_Init();
+	ADC3_Init();
 	Elec_Init();
 	Beep_Init();
 	Pump_init();

@@ -1286,7 +1286,11 @@ INT32 HW_ADC_SpiGetPress(void)
     INT32 nValue = 0;
     double fValue = 0;
 
-    nAd = HW_ADC_SpiGetADC(INDEX_PRESS);  // 0: HGB, 1: press1
+	#if USE_STM32F407_ONLY
+		nAd = Get_Press_ADC();
+	#else
+		nAd = HW_ADC_SpiGetADC(INDEX_PRESS);  // 0: HGB, 1: press
+	#endif
     //
 
     fValue = nAd * ((double)s_nK);
@@ -1299,7 +1303,7 @@ INT32 HW_ADC_SpiGetPress(void)
     fValue -= (double)s_nB;
 	//nValue = (UINT32)fValue
     nValue = (INT32)fValue + g_Record_Param.nAddPress; 
-	//printf("Get press: addP=%d,oriP=%d,P=%d",\
+	printf("Get press: addP=%d,oriP=%d,P=%d",\
 				(int)g_Record_Param.nAddPress, (int)fValue, (int)nValue);
     return nValue;
 }

@@ -6,10 +6,13 @@
 #include "MyType.h"       // ---
 #include <stdio.h>        // for "printf" debug
 
-#define ADC2_CHECK_NUM	2
+#define ADC2_CHECK_NUM			2
+#define ADC3_CHECK_NUM			2
+#define ADC3_INIT_WITH_DMA		0
 
 extern IO_ UINT8 g_Elec_Status;
 extern IO_ UINT16 g_ADC2_Value[ADC2_CHECK_NUM];
+extern IO_ UINT16 g_ADC3_Value[ADC3_CHECK_NUM];
 
 // elec PE0
 #define ELEC_PORT			GPIOE
@@ -37,6 +40,8 @@ extern IO_ UINT16 g_ADC2_Value[ADC2_CHECK_NUM];
 #define PUMP_PWM_TIM_SRC		RCC_APB1Periph_TIM4	
 #define PUMP_PWM_TIM_ARR		24999 //25000
 #define PUMP_PWM_TIM_PSC		41    //42
+#define PUMP_PWM_STOP			24999
+#define PUMP_PWM_RUN			14999
 
 #define PUMP_DIR_PORT			GPIOD
 #define PUMP_DIR_PIN			GPIO_Pin_4
@@ -109,10 +114,10 @@ extern IO_ UINT16 g_ADC2_Value[ADC2_CHECK_NUM];
 //#define D_REGISTER_CLK_SPI_PINSRC 
 
 
-#define FIX_MOTOR_PULSE_UP_TIME			300
-#define FIX_MOTOR_PULSE_DOWN_TIME		500
-#define OUTIN_MOTOR_PULSE_UP_TIME		300
-#define OUTIN_MOTOR_PULSE_DOWN_TIME		500
+#define FIX_MOTOR_PULSE_UP_TIME			155
+#define FIX_MOTOR_PULSE_DOWN_TIME		155
+#define OUTIN_MOTOR_PULSE_UP_TIME		70
+#define OUTIN_MOTOR_PULSE_DOWN_TIME		70
 
 #define	OUTIN_MOTOR_HOME_TIME	10000
 
@@ -139,6 +144,9 @@ typedef enum{
 
 void ADC1_Init(void);
 void ADC2_Init(void);
+void ADC3_Init(void);
+UINT16 Get_XK_ADC(void);
+UINT16 Get_Press_ADC(void);
 
 void Reset_Elec_Status(void);
 void Set_Elec_Status(void);

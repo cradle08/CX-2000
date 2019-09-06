@@ -121,7 +121,7 @@ void ADC1_Init(void);
 #define    CMD_DATA_TEST_WBC   			0x30000501
 
 
-#define PUMP_SELF_CHECK_TIME           5000
+#define PUMP_SELF_CHECK_TIME           10000
 
 //===================================================
 //

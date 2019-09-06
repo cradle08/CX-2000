@@ -8,6 +8,7 @@
 
 IO_ UINT8 g_Elec_Status = 0;
 IO_ UINT16 g_ADC2_Value[ADC2_CHECK_NUM] = {0};
+IO_ UINT16 g_ADC3_Value[ADC3_CHECK_NUM] = {0};
 
 //IO_ static UINT32  fac_us=0;							//us延时倍乘数			   
 //IO_ static UINT32  fac_ms=0;	
@@ -197,9 +198,6 @@ void DMA2_Stream0_IRQHandler(void)
 }
 
 
-//
-
-
 void ADC2_DMA_Config(void)
 {
 	DMA_InitTypeDef DMA_InitStructure;
@@ -209,7 +207,7 @@ void ADC2_DMA_Config(void)
 	DMA_DeInit(DMA2_Stream3);
 	while(DMA_GetCmdStatus(DMA2_Stream3) != DISABLE){}
 	// DMA SET
-	DMA_InitStructure.DMA_Channel 				= DMA_Channel_0;
+	DMA_InitStructure.DMA_Channel 				= DMA_Channel_1;
 	DMA_InitStructure.DMA_PeripheralBaseAddr 	= (uint32_t)&ADC2->DR,
 	DMA_InitStructure.DMA_Memory0BaseAddr 		= (uint32_t)g_ADC2_Value;
 	DMA_InitStructure.DMA_DIR					= DMA_DIR_PeripheralToMemory;
@@ -230,10 +228,10 @@ void ADC2_DMA_Config(void)
 	DMA_Init(DMA2_Stream3, &DMA_InitStructure); 
 		
 	// NVIC
-	DMA_ClearITPendingBit(DMA2_Stream3,DMA_IT_HTIF0);
-	DMA_ClearITPendingBit(DMA2_Stream3,DMA_IT_TCIF0);
-	DMA_ITConfig(DMA2_Stream3,DMA_IT_TC,ENABLE);
-	DMA_ITConfig(DMA2_Stream3,DMA_IT_HT,ENABLE);	
+//	DMA_ClearITPendingBit(DMA2_Stream2,DMA_IT_HTIF0);
+//	DMA_ClearITPendingBit(DMA2_Stream2,DMA_IT_TCIF0);
+//	DMA_ITConfig(DMA2_Stream2,DMA_IT_TC,ENABLE);
+//	DMA_ITConfig(DMA2_Stream2,DMA_IT_HT,ENABLE);	
 		
 //	NVIC_InitStructure.NVIC_IRQChannel=DMA2_Stream0_IRQn; 
 //	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x02;   
@@ -275,9 +273,10 @@ void ADC2_Init(void)
 	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 	
-	//ADC2
-//	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2,ENABLE);
-//	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2,DISABLE);
+	//ADC2	
+//	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2, ENABLE);
+	//RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2, DISABLE);
+	
 	// Common Set
 	ADC_CommonInitStructure.ADC_Mode	= ADC_Mode_Independent;
 	ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
@@ -293,15 +292,18 @@ void ADC2_Init(void)
 	ADC_InitStructure.ADC_ExternalTrigConv  = ADC_ExternalTrigConv_T1_CC1;
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;//ADC_DataAlign_Left;//ADC_DataAlign_Right;
 	ADC_Init(ADC2, &ADC_InitStructure);	
-	ADC_Cmd(ADC2, ENABLE);
+	//ADC_Cmd(ADC2, ENABLE);
 	
 	ADC2_DMA_Config();
 	ADC_DMACmd(ADC2, ENABLE);
 	
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_0, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_1, 2, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
-	ADC_DMARequestAfterLastTransferCmd(ADC2, ENABLE);
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_10, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_9, 2, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
 	
+	ADC_DMARequestAfterLastTransferCmd(ADC2, ENABLE); 
+  //ADC_DMACmd(ADC2, ENABLE);
+ 	ADC_Cmd(ADC2, ENABLE);
+	ADC_SoftwareStartConv(ADC2); 
 }
 
 u16 Get_Adc(UINT8 nCh, UINT8 nTime)   
@@ -319,6 +321,254 @@ u16 Get_Adc(UINT8 nCh, UINT8 nTime)
 	nVal /= nTime;
 	return nVal;
 }
+
+#if ADC3_INIT_WITH_DMA
+	void ADC3_DMA_Config(void)
+	{
+		DMA_InitTypeDef DMA_InitStructure;
+		NVIC_InitTypeDef NVIC_InitStructure;
+		
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
+		DMA_DeInit(DMA2_Stream1);
+		while(DMA_GetCmdStatus(DMA2_Stream1) != DISABLE){}
+		// DMA SET
+		DMA_InitStructure.DMA_Channel 				= DMA_Channel_2;
+		DMA_InitStructure.DMA_PeripheralBaseAddr 	= (uint32_t)&ADC3->DR,
+		DMA_InitStructure.DMA_Memory0BaseAddr 		= (uint32_t)g_ADC3_Value;
+		DMA_InitStructure.DMA_DIR					= DMA_DIR_PeripheralToMemory;
+		DMA_InitStructure.DMA_BufferSize			= ADC3_CHECK_NUM;
+		DMA_InitStructure.DMA_PeripheralInc			= DMA_PeripheralInc_Disable;
+		DMA_InitStructure.DMA_MemoryInc 			= DMA_MemoryInc_Enable;
+		DMA_InitStructure.DMA_PeripheralDataSize	= DMA_PeripheralDataSize_HalfWord;
+		DMA_InitStructure.DMA_MemoryDataSize		= DMA_MemoryDataSize_HalfWord;
+		DMA_InitStructure.DMA_Mode					= DMA_Mode_Circular;
+		DMA_InitStructure.DMA_Priority				= DMA_Priority_Medium; //
+		DMA_InitStructure.DMA_FIFOMode				= DMA_FIFOMode_Disable;
+		DMA_InitStructure.DMA_FIFOThreshold			= DMA_FIFOThreshold_Full;
+		DMA_InitStructure.DMA_MemoryBurst			= DMA_MemoryBurst_Single;
+		DMA_InitStructure.DMA_PeripheralBurst 		= DMA_PeripheralBurst_Single;
+		
+		//DMA_DoubleBufferModeConfig(DMA2_Stream0,(uint32_t)&g_ADC_Buffer_2,DMA_Memory_0);//DMA_Memory_0?????
+		//DMA_DoubleBufferModeCmd(DMA2_Stream0,ENABLE);
+		DMA_Init(DMA2_Stream1, &DMA_InitStructure); 
+			
+		// NVIC
+	//	DMA_ClearITPendingBit(DMA2_Stream2,DMA_IT_HTIF0);
+	//	DMA_ClearITPendingBit(DMA2_Stream2,DMA_IT_TCIF0);
+	//	DMA_ITConfig(DMA2_Stream2,DMA_IT_TC,ENABLE);
+	//	DMA_ITConfig(DMA2_Stream2,DMA_IT_HT,ENABLE);	
+			
+	//	NVIC_InitStructure.NVIC_IRQChannel=DMA2_Stream0_IRQn; 
+	//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x02;   
+	//	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x02;                      
+	//	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
+	//	NVIC_Init(&NVIC_InitStructure);
+		//DMA_ClearITPendingBit(DMA2_Stream0,DMA_IT_TCIF0);
+		//DMA_ITConfig(DMA2_Stream0,DMA_IT_TC,ENABLE);
+		//while (DMA_GetCmdStatus(DMA2_Stream0) != DISABLE){}
+		DMA_Cmd(DMA2_Stream1, ENABLE);
+	}
+
+	// ADC3 with DMA func
+	void ADC3_Init(void)
+	{
+		GPIO_InitTypeDef GPIO_InitStructure;
+		ADC_CommonInitTypeDef ADC_CommonInitStructure;
+		ADC_InitTypeDef ADC_InitStructure;
+		
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);
+		
+		// ADC3_CH4  PF6 press
+		GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_6;
+		GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+		GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+		GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+		GPIO_Init(GPIOF, &GPIO_InitStructure);
+		
+		// ADC3_CH5, PF7, xiaokong
+		GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_7;
+		GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+		GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+		GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+		GPIO_Init(GPIOF, &GPIO_InitStructure);
+
+		// ADC2_CH8, PB0,48V
+	//	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_0;
+	//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+	//	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	//	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+	//	GPIO_Init(GPIOB, &GPIO_InitStructure);
+		// ADC2_CH9, PB1, xiaokong
+	//	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_1;
+	//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+	//	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	//	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+	//	GPIO_Init(GPIOB, &GPIO_InitStructure);
+		// ADC2_CH10, PC0. press
+	//	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_0;
+	//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+	//	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	//	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+	//	GPIO_Init(GPIOC, &GPIO_InitStructure);
+		
+		//ADC2	
+	//	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2, ENABLE);
+		//RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2, DISABLE);
+		
+		// Common Set
+		ADC_CommonInitStructure.ADC_Mode	= ADC_Mode_Independent;
+		ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
+		ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div4;
+		ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_1;
+		ADC_CommonInit(&ADC_CommonInitStructure);
+		// ADC Set
+		ADC_InitStructure.ADC_Resolution	= ADC_Resolution_12b;
+		ADC_InitStructure.ADC_ScanConvMode  = ENABLE;//DISABLE;
+		ADC_InitStructure.ADC_NbrOfConversion = ADC3_CHECK_NUM;
+		ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;// ENABLE;
+		ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
+		ADC_InitStructure.ADC_ExternalTrigConv  = ADC_ExternalTrigConv_T1_CC1;
+		ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;//ADC_DataAlign_Left;//ADC_DataAlign_Right;
+		ADC_Init(ADC3, &ADC_InitStructure);	
+		//ADC_Cmd(ADC3, ENABLE);
+		
+		ADC3_DMA_Config();
+		//ADC_DMACmd(ADC3, ENABLE);
+		
+		// ch4 press, ch5 xiaokong 
+		ADC_RegularChannelConfig(ADC3, ADC_Channel_4, 1, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
+		ADC_RegularChannelConfig(ADC3, ADC_Channel_5, 2, ADC_SampleTime_3Cycles); //ADC_SampleTime_3Cycles
+		
+		ADC_DMARequestAfterLastTransferCmd(ADC3, ENABLE); 
+		ADC_DMACmd(ADC3, ENABLE);
+		ADC_Cmd(ADC3, ENABLE);
+		ADC_SoftwareStartConv(ADC3); 
+	}
+	
+#else 
+	// ADC3 without DMA func
+	void ADC3_Init(void)
+	{
+		GPIO_InitTypeDef GPIO_InitStructure;
+		ADC_CommonInitTypeDef ADC_CommonInitStructure;
+		ADC_InitTypeDef ADC_InitStructure;
+		
+		//ADC_DeInit();
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);
+		
+		//PF6
+		GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_6;
+		GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+		GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+		GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+		GPIO_Init(GPIOF, &GPIO_InitStructure);
+		
+		//PF7
+		GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_7;
+		GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+		GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+		GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+		GPIO_Init(GPIOF, &GPIO_InitStructure);
+		
+		// ADC2_CH8, PB0,48V
+	//	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_0;
+	//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+	//	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	//	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+	//	GPIO_Init(GPIOB, &GPIO_InitStructure);
+		// ADC2_CH9, PB1, xiaokong
+	//	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_1;
+	//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+	//	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	//	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+	//	GPIO_Init(GPIOB, &GPIO_InitStructure);
+		// ADC2_CH10, PC0. press
+	//	GPIO_InitStructure.GPIO_Pin		= GPIO_Pin_0;
+	//	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AN;
+	//	GPIO_InitStructure.GPIO_PuPd	= GPIO_PuPd_NOPULL;
+	//	GPIO_InitStructure.GPIO_Speed   = GPIO_Speed_50MHz;
+	//	GPIO_Init(GPIOC, &GPIO_InitStructure);
+		
+		//ADC2	
+	//	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2,ENABLE);	 
+	 //   RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2,DISABLE);	
+		// Common Set
+		ADC_CommonInitStructure.ADC_Mode	= ADC_Mode_Independent;
+		ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
+		ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div4;
+		ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled; //ADC_DMAAccessMode_1; //ADC_DMAAccessMode_Disabled
+		ADC_CommonInit(&ADC_CommonInitStructure);
+		// ADC Set
+		ADC_InitStructure.ADC_Resolution	= ADC_Resolution_12b;
+		ADC_InitStructure.ADC_ScanConvMode  = DISABLE;//ENABLE;//DISABLE;
+		ADC_InitStructure.ADC_NbrOfConversion = ADC3_CHECK_NUM;
+		ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;//DISABLE;//ENABLE;// ENABLE;
+		ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
+		ADC_InitStructure.ADC_ExternalTrigConv  = ADC_ExternalTrigConvEdge_None;// ADC_ExternalTrigConv_T1_CC1; // ADC_ExternalTrigConvEdge_None
+		ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;//ADC_DataAlign_Left;//ADC_DataAlign_Right;
+		ADC_Init(ADC3, &ADC_InitStructure);	
+		ADC_Cmd(ADC3, ENABLE);
+		
+		//ADC2_DMA_Config();
+		//ADC_DMACmd(ADC3, ENABLE);
+		
+		//ADC_RegularChannelConfig(ADC3, ADC_Channel_4, 1, ADC_SampleTime_480Cycles); //ADC_SampleTime_3Cycles
+		//ADC_RegularChannelConfig(ADC3, ADC_Channel_5, 1, ADC_SampleTime_480Cycles); //ADC_SampleTime_3Cycles
+		
+		//ADC_DMARequestAfterLastTransferCmd(ADC3, ENABLE); 
+	  //ADC_DMACmd(ADC3, ENABLE);
+		//ADC_Cmd(ADC3, ENABLE);
+		//ADC_SoftwareStartConv(ADC3); 
+	}
+	
+#endif //ADC3_INIT_WITH_DMA
+
+UINT16 Get_Press_ADC(void)
+{
+	UINT16 nVal = 0, i;
+	
+#if ADC3_INIT_WITH_DMA
+	nVal = g_ADC3_Value[0];
+#else
+	ADC_ClearFlag(ADC3,ADC_FLAG_EOC);
+	ADC_Cmd(ADC3,ENABLE);
+	for(i = 0; i < 5; i++)
+	{
+		ADC_RegularChannelConfig(ADC3, ADC_Channel_4, 1, ADC_SampleTime_3Cycles ); //ADC1,ADC通道,480个周期,提高采样时间可以提高精确度		
+		ADC_SoftwareStartConv(ADC3);		//使能指定的ADC1的软件转换启动功能	
+		while(!ADC_GetFlagStatus(ADC3, ADC_FLAG_EOC ));//等待转换结束
+		nVal += ADC_GetConversionValue(ADC3);	//返回最近一次ADC1规则组的转换结果
+	}
+	nVal /= 5;
+#endif
+	return nVal;
+}
+
+UINT16 Get_XK_ADC(void)
+{
+	UINT16 nVal = 0, i;
+	
+#if ADC3_INIT_WITH_DMA
+	nVal = g_ADC3_Value[1];
+#else
+	ADC_ClearFlag(ADC3,ADC_FLAG_EOC);
+	ADC_Cmd(ADC3,ENABLE);
+	for(i = 0; i < 5; i++)
+	{
+		ADC_RegularChannelConfig(ADC3, ADC_Channel_5, 1, ADC_SampleTime_3Cycles ); //ADC1,ADC通道,480个周期,提高采样时间可以提高精确度		
+		ADC_SoftwareStartConv(ADC3);		//使能指定的ADC1的软件转换启动功能	
+		while(!ADC_GetFlagStatus(ADC3, ADC_FLAG_EOC ));//等待转换结束
+		nVal += ADC_GetConversionValue(ADC3);	//返回最近一次ADC1规则组的转换结果
+	}
+	nVal /= 5;
+#endif
+	return nVal;
+}
+
 
 void Reset_Elec_Status(void)
 {
@@ -417,8 +667,10 @@ void Pump_init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; //GPIO_PuPd_DOWN
 	GPIO_Init(PUMP_DIR_PORT, &GPIO_InitStructure);
+	GPIO_SetBits(PUMP_DIR_PORT, PUMP_DIR_PIN);
 	
 	TIM4_PWM_Init(PUMP_PWM_TIM_ARR, PUMP_PWM_TIM_PSC); //84M/42=2M, 1M/25000=59.52
+	//Pump_Speed_Set(24998);
 }
 
 void Pump_Speed_Set(UINT16 nSpeed) // 0-499
@@ -445,12 +697,12 @@ void TIM4_PWM_Init(UINT32 Arr, UINT32 Psc)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //推挽复用输出
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;        //上拉
 	GPIO_Init(PUMP_CLK_PORT, &GPIO_InitStructure);        
+	GPIO_ResetBits(PUMP_CLK_PORT, PUMP_CLK_PIN);
 	
 	TIM_TimeBaseStructure.TIM_Prescaler=Psc;  //定时器分频
 	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //向上计数模式
 	TIM_TimeBaseStructure.TIM_Period=Arr;   //自动重装载值
 	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 
-
 	TIM_TimeBaseInit(PUMP_PWM_TIM,&TIM_TimeBaseStructure);//初始化定时器14
 
 	//初始化TIM14 Channel1 PWM模式	 
@@ -461,19 +713,17 @@ void TIM4_PWM_Init(UINT32 Arr, UINT32 Psc)
 	TIM_OC2Init(PUMP_PWM_TIM, &TIM_OCInitStructure);  
 
 	TIM_OC2PreloadConfig(PUMP_PWM_TIM, TIM_OCPreload_Enable); 
-
 	TIM_ARRPreloadConfig(PUMP_PWM_TIM,ENABLE);
-
 	TIM_Cmd(PUMP_PWM_TIM, ENABLE);  //
 }
 		
 
-void Pump_AntiClockWise(void)
+void Pump_AntiClockWise(void) // xi qi
 {
 	GPIO_SetBits(PUMP_DIR_PORT, PUMP_DIR_PIN);
 }
 
-void Pump_ClockWise(void)
+void Pump_ClockWise(void) // zhu qi
 {
 	GPIO_ResetBits(PUMP_DIR_PORT, PUMP_DIR_PIN);
 }
@@ -483,12 +733,13 @@ void Pump_Exec(UINT8 nDir, UINT16 nFreq)
 	if(nFreq > PUMP_PWM_TIM_ARR) return;
 	if(nDir != e_Dir_Neg || nDir != e_Dir_Pos) return;
 	
-	if(nDir == EN_ANTI_CLOCK_WISE){
-		Pump_AntiClockWise();
-	}else if(nDir == EN_CLOCK_WISE){
-		Pump_ClockWise();
-	}
+//	if(nDir == e_Dir_Pos){
+//		Pump_AntiClockWise();
+//	}else if(nDir == e_Dir_Neg){
+//		Pump_ClockWise();
+//	}
 	//
+	Pump_init();
 	Pump_Speed_Set(nFreq);
 }
 
@@ -513,15 +764,18 @@ void Valve_Init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(VALVE_LIQUID_PORT, &GPIO_InitStructure);
+	//
+	GPIO_SetBits(VALVE_AIR_PORT, VALVE_AIR_PIN);
+	GPIO_SetBits(VALVE_LIQUID_PORT, VALVE_LIQUID_PIN);
 }
 
 void Valve_Air_Exec(UINT8 nOpt)
 {
 	if(nOpt == EN_OPEN)
 	{
-		GPIO_SetBits(VALVE_AIR_PORT, VALVE_AIR_PIN);
-	}else if(nOpt == EN_CLOSE){
 		GPIO_ResetBits(VALVE_AIR_PORT, VALVE_AIR_PIN);
+	}else if(nOpt == EN_CLOSE){
+		GPIO_SetBits(VALVE_AIR_PORT, VALVE_AIR_PIN);
 	}
 }
 
@@ -529,9 +783,9 @@ void Valve_Liquid_Exec(UINT8 nOpt)
 {
 	if(nOpt == EN_OPEN)
 	{
-		GPIO_SetBits(VALVE_LIQUID_PORT, VALVE_LIQUID_PIN);
-	}else if(nOpt == EN_CLOSE){
 		GPIO_ResetBits(VALVE_LIQUID_PORT, VALVE_LIQUID_PIN);
+	}else if(nOpt == EN_CLOSE){
+		GPIO_SetBits(VALVE_LIQUID_PORT, VALVE_LIQUID_PIN);
 	}
 }
 
@@ -598,6 +852,7 @@ void Fix_Motor_Init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(FIX_MOTOR_EN_PORT, &GPIO_InitStructure);
+	GPIO_ResetBits(FIX_MOTOR_EN_PORT, FIX_MOTOR_EN_PIN);
 	// dir
 	GPIO_InitStructure.GPIO_Pin = FIX_MOTOR_DIR_PIN; 
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -605,6 +860,7 @@ void Fix_Motor_Init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(FIX_MOTOR_DIR_PORT, &GPIO_InitStructure);
+	GPIO_ResetBits(FIX_MOTOR_DIR_PORT, FIX_MOTOR_DIR_PIN);
 	// clk
 	GPIO_InitStructure.GPIO_Pin = FIX_MOTOR_CLK_PIN; 
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -612,6 +868,10 @@ void Fix_Motor_Init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(FIX_MOTOR_CLK_PORT, &GPIO_InitStructure);
+	
+	GPIO_ResetBits(FIX_MOTOR_EN_PORT, FIX_MOTOR_EN_PIN);
+	GPIO_ResetBits(FIX_MOTOR_DIR_PORT, FIX_MOTOR_DIR_PIN);
+	GPIO_ResetBits(FIX_MOTOR_CLK_PORT, FIX_MOTOR_CLK_PIN);
 }
 
 void Fix_Motor_Enable(void)
@@ -669,6 +929,10 @@ void OutIn_Motor_Init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(OUTIN_MOTOR_CLK_PORT, &GPIO_InitStructure);
+	
+	GPIO_ResetBits(OUTIN_MOTOR_EN_PORT, OUTIN_MOTOR_EN_PIN);
+	GPIO_ResetBits(OUTIN_MOTOR_DIR_PORT, OUTIN_MOTOR_DIR_PIN);
+	GPIO_ResetBits(OUTIN_MOTOR_CLK_PORT, OUTIN_MOTOR_CLK_PIN);
 }
 
 void OutIn_Motor_Enable(void)
@@ -1030,6 +1294,39 @@ void Driver_Debug(UINT8 nIndex)
 		break;
 		case 7:
 		{
+			printf("press=%d, xk=%d\r\n", Get_Press_ADC(), Get_XK_ADC());
+			//WBC_48V_Self_Check();
+			//Valve1_Self_Check();
+			//Valve2_Self_Check();
+			printf(" start\r\n");
+			
+			//-----pump
+			Valve_Air_Exec(EN_OPEN);
+			//Valve_Liquid_Exec(EN_OPEN);
+			//Pump_AntiClockWise();
+			Pump_Exec(e_Dir_Pos, PUMP_PWM_RUN);
+			IT_SYS_DlyMs(500);
+			IT_SYS_DlyMs(500);
+			Valve_Air_Exec(EN_CLOSE);
+
+			
+			//----------- out in
+//			OutIn_Motor_Enable();
+//			OutIn_Motor_AntiClockWise();
+//			//OutIn_Motor_ClockWise();
+//			for(i = 0; i < 8000; i++){
+//				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+//			}
+			//---------- press
+			printf("press=%10d\r\n", (int)Get_Press_Value(5));
+			
+			//Pump_Exec(e_Dir_Pos, 14999);
+			//Pump_Self_Check();
+			printf(" end\r\n");
+			//Get_Press_Value(5);
+			
+			
+			
 		
 		}
 		break;
@@ -1042,16 +1339,5 @@ void Driver_Debug(UINT8 nIndex)
 
 
 
-
-
-
-
-
-
-
-
 #endif
-
-
-
 

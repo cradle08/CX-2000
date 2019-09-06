@@ -805,11 +805,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 
 			case CMD_CTRL_WBC_48V_CHECK:
 			{		
-				#if USE_STM32F407_ONLY
-				
-				#else
-					WBC_48V_Self_Check();
-				#endif
+				WBC_48V_Self_Check();
 			}
 			break;
 			case CMD_CTRL_BUILD_PRESS_CHECK:
@@ -877,10 +873,10 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				Driver_Debug(*(pchCmdBuf + 8));
 			}
 			break;
-            default:
-            {
-                break;
-            }
+					default:
+					{
+							break;
+					}
 
         } // end of "switch(chByte)"
     }
@@ -2919,11 +2915,15 @@ _EXT_ UINT8 Negative_Pressure_Self_Check(void)
 	INT32 nPress;
 	UINT32 StartTicks, EndTicks;
 	
-	//HW_Valve_On(VALVE_PRESSSURE);
-	//IT_SYS_DlyMs(10);
-	HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);  // on, 25000 ticks per ms
-	HW_Valve_On(INDEX_VALVE_PUMP);    // all the air way
-	HW_Valve_Off(INDEX_VALVE_WBC);    // WBC
+	#if USE_STM32F407_ONLY
+		Pump_Exec(e_Dir_Pos, PUMP_PRESS_FREQ);
+		Valve_Air_Exec(EN_OPEN);
+		Valve_Liquid_Exec(EN_CLOSE);	
+	#else
+		HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);  // on, 25000 ticks per ms
+		HW_Valve_On(INDEX_VALVE_PUMP);    // all the air way
+		HW_Valve_Off(INDEX_VALVE_WBC);    // WBC
+	#endif
 	
 	StartTicks = IT_SYS_GetTicks();
 	EndTicks = StartTicks;
@@ -2933,17 +2933,30 @@ _EXT_ UINT8 Negative_Pressure_Self_Check(void)
 		nPress = Get_Press_Value(GET_PRESS_NUM_FIVE); 
 		if(nPress >= PRESS_BUILD)
 		{
-			HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
-            HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
-            HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
+			#if USE_STM32F407_ONLY
+				Pump_Exec(e_Dir_Pos, PUMP_PRESS_OFF);
+				Valve_Air_Exec(EN_CLOSE);
+				Valve_Liquid_Exec(EN_CLOSE);
+			#else
+				HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
+				HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
+				HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
+
+			#endif
 			break;
 		}
 	}
 	if((EndTicks - StartTicks) > TIME_OVER_TS_BUILD_PRESS)
 	{
-		HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
-		HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
-		HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
+		#if USE_STM32F407_ONLY
+			Pump_Exec(e_Dir_Pos, PUMP_PRESS_OFF);
+			Valve_Air_Exec(EN_CLOSE);
+			Valve_Liquid_Exec(EN_CLOSE);
+		#else
+			HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
+			HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
+			HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
+		#endif
 		return e_Feedback_Fail;
 		
 	}
@@ -2954,9 +2967,14 @@ _EXT_ UINT32 Get_WBC_V_Value(void)
 {
 	UINT16 nWord;
 	UINT32 nValue;
-
-	nWord = HW_ADC_SpiGetADC(INDEX_ADC_48V);
-	nValue = nWord*10000/4096;
+	#if USE_STM32F407_ONLY
+		nWord = Get_XK_ADC();	
+		nValue = nWord*3300/4096;
+	#else
+		nWord = HW_ADC_SpiGetADC(INDEX_ADC_48V);
+		nValue = nWord*10000/4096;
+	#endif
+	
 //	printf("WBC_V: adc=%d, wbc_v=%d\r\n", nWord, (int)nValue);
 	return nValue;
 }
@@ -2970,7 +2988,7 @@ _EXT_ UINT32 WBC_48V_Self_Check(void)
 	
     printf("WBC_48V Slef Check: wbc_v=%d, 48v=%d\r\n",\
 					 (int)nVCheck, (int)nVIn);
-	if(nVIn >= 45000 && nVIn <= 55000)
+	if(nVIn >= 40000 && nVIn <= 55000)
 	{
 		Msg_Return_Handle_16(e_Msg_Status, CMD_STATUS_WBC_48V, e_Feedback_Success);
 	}else{ // error
@@ -2986,9 +3004,9 @@ _EXT_ UINT8 Valve1_Self_Check(void)
 	#if USE_STM32F407_ONLY
 		for(i = 0; i < 3; i++)
 		{
-			Valve_Liquid_Exec(EN_OPEN);
+			Valve_Air_Exec(EN_OPEN);
 			IT_SYS_DlyMs(1000);
-			Valve_Liquid_Exec(EN_CLOSE);
+			Valve_Air_Exec(EN_CLOSE);
 			IT_SYS_DlyMs(1000);
 		}
 	#else
@@ -3057,14 +3075,16 @@ _EXT_ UINT8 Pump_Self_Check(void)
 	EndTicks = StartTicks;
 	
 	#if USE_STM32F407_ONLY
+		Pump_AntiClockWise(); // xi qi
+		Valve_Air_Exec(EN_OPEN);
 		Pump_Exec(e_Dir_Pos ,PUMP_PRESS_FREQ);
-		//HW_Valve_On(INDEX_VALVE_PUMP); 
 		while((EndTicks - StartTicks) <= PUMP_SELF_CHECK_TIME)
 		{
 			EndTicks = IT_SYS_GetTicks();
 			IT_SYS_DlyMs(1);
 		}
 		Pump_Exec(e_Dir_Pos ,PUMP_PRESS_OFF);     // off
+		Valve_Air_Exec(EN_CLOSE);
 	#else
 		HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);
 		//HW_Valve_On(INDEX_VALVE_PUMP); 
