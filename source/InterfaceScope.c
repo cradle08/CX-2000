@@ -217,8 +217,11 @@ enum eAxisYPos MT_Y_get_posi(void)
 		UINT32 nCurTime = 0, nTempTime, i;
 
 		// check fix motor position
-		if(EN_OPEN == Get_Fix_OC_Status()){ // need to fixable
-			// fix motor fixable
+		if(EN_OPEN == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))  // need to fixable
+		{
+			#ifdef  MOTO_DOBULE_ENABLE
+				MT_Y_MoveToPosRel(eCall);
+			#endif
 		}else{
 			if(eCall == e_NormalCheck_Call) // return status for normal exec
 			{
@@ -232,18 +235,18 @@ enum eAxisYPos MT_Y_get_posi(void)
 			moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
 		}
 		// check outin motor in
-		if(EN_OPEN == Get_In_OC_Status()) // not at in position
+		if(EN_OPEN == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) // not at in position
 		{
-			Fix_Motor_Enable();
+			OutIn_Motor_Enable();
 			OutIn_Motor_ClockWise(); // in
 			nCurTime = IT_SYS_GetTicks();
 			nTempTime = nCurTime;
 			for(i = 0; i < 35000; i++)
 			{
-				if(EN_CLOSE == Get_In_OC_Status())
+				if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
 				{
 					IT_SYS_DlyMs(5);
-					if(EN_CLOSE == Get_In_OC_Status()) break;
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) break;
 				}
 				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
 				nCurTime = IT_SYS_GetTicks();
@@ -251,7 +254,8 @@ enum eAxisYPos MT_Y_get_posi(void)
 				{
 					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
 					moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-					break;
+					OutIn_Motor_Disable();
+					return e_Feedback_Error;
 				}			
 			}
 			// add step
@@ -265,6 +269,7 @@ enum eAxisYPos MT_Y_get_posi(void)
 		}else{
 			//
 		}
+		OutIn_Motor_Disable();
 		// end status msg
 		if(eCall == e_NormalCheck_Call)
 		{
@@ -405,90 +410,138 @@ enum eAxisYPos MT_Y_get_posi(void)
 	}
 #endif //USE_STM32F407_ONLY
 
-UINT8 MT_X_Home_only(void)
-{
-    struct tMvMotorPara  tMvoingPara;
-
-    //moto_work_stat(0, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
-	moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
-
-    // record the motor's para
-    tMvoingPara.nFreqMin = g_atMotorPara[Motor_X].nFreqMin;
-    tMvoingPara.nFreqMax = g_atMotorPara[Motor_X].nFreqMax;
-    tMvoingPara.nFreqInc = g_atMotorPara[Motor_X].nFreqInc;
-    tMvoingPara.nFreqSam = g_atMotorPara[Motor_X].nFreqSam;
-
-    // not detect the single of home at the begining, moving long diatance
-    if (1 == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
-    {
-        // long distance
-        MV_InitPara(Motor_X, 4000, 8000, 100, 10);
-        // OC is on the right, right step
-        MV_Move(Motor_X, 35000, e_Dir_Neg); // comes near the OC
-
-        while (1 == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) // OC detection is not enable
-        {
-            if (e_True == MV_IsFinished(Motor_X))
-            {
-                MV_Stop(Motor_X);
-                collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
-
-                //moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
+	
+#if USE_STM32F407_ONLY
+	UINT8 MT_X_Home_only(void)
+	{
+		UINT32 i = 0;
+		//moto_work_stat(0, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
+		moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);	
+		// not detect the single of home at the begining, moving long diatance
+		OutIn_Motor_Enable();
+		OutIn_Motor_ClockWise(); //int
+		if (EN_OPEN == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+		{
+			for(i = 0; i < 35000; i++)
+			{
+				if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+				{
+					IT_SYS_DlyMs(5);
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) break;
+				}
+				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+			}
+			//
+			if(i > 35000)
+			{
+				collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+				//moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
 				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-                return e_Feedback_Error;
-            }
-        }
-        IT_SYS_DlyMs(3);      //
-        MV_Stop(Motor_X);
-    }
-    else
-    {
-        ;
-    }
-    //
-    g_tAxisPosStatus.nAxisX = 0;
-    g_tAxisPosStatus.eAxisX    = E_AXIS_X_POS_HOME;
-    //---------------------------------------------------
-    // set to the default moving parameters
-    MV_InitPara(Motor_X,
-                tMvoingPara.nFreqMin,
-                tMvoingPara.nFreqMax,
-                tMvoingPara.nFreqInc,
-                tMvoingPara.nFreqSam);
-    //
-    //moto_work_stat(0, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
-	moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
-    return e_Feedback_Success;
-}
+			}
+			// long distance
+			MV_InitPara(Motor_X, 4000, 8000, 100, 10);
+			// OC is on the right, right step
+			MV_Move(Motor_X, 35000, e_Dir_Neg); // comes near the OC
+		}
+		else
+		{
+			;
+		}
+		OutIn_Motor_Disable();
+		//moto_work_stat(0, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
+		moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
+		return e_Feedback_Success;
+	}
+	
+#else
+	UINT8 MT_X_Home_only(void)
+	{
+		struct tMvMotorPara  tMvoingPara;
+
+		//moto_work_stat(0, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
+		moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
+
+		// record the motor's para
+		tMvoingPara.nFreqMin = g_atMotorPara[Motor_X].nFreqMin;
+		tMvoingPara.nFreqMax = g_atMotorPara[Motor_X].nFreqMax;
+		tMvoingPara.nFreqInc = g_atMotorPara[Motor_X].nFreqInc;
+		tMvoingPara.nFreqSam = g_atMotorPara[Motor_X].nFreqSam;
+
+		
+		// not detect the single of home at the begining, moving long diatance
+		if (1 == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+		{
+			// long distance
+			MV_InitPara(Motor_X, 4000, 8000, 100, 10);
+			// OC is on the right, right step
+			MV_Move(Motor_X, 35000, e_Dir_Neg); // comes near the OC
+
+			while (1 == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) // OC detection is not enable
+			{
+				if (e_True == MV_IsFinished(Motor_X))
+				{
+					MV_Stop(Motor_X);
+					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+
+					//moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
+					moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+					return e_Feedback_Error;
+				}
+			}
+			IT_SYS_DlyMs(3);      //
+			MV_Stop(Motor_X);
+		}
+		else
+		{
+			;
+		}
+		//
+		g_tAxisPosStatus.nAxisX = 0;
+		g_tAxisPosStatus.eAxisX    = E_AXIS_X_POS_HOME;
+		//---------------------------------------------------
+		// set to the default moving parameters
+		MV_InitPara(Motor_X,
+					tMvoingPara.nFreqMin,
+					tMvoingPara.nFreqMax,
+					tMvoingPara.nFreqInc,
+					tMvoingPara.nFreqSam);
+		//
+		//moto_work_stat(0, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
+		moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
+		return e_Feedback_Success;
+	}
+#endif //UINT8 MT_X_Home_only(void)
+	
 
 #if USE_STM32F407_ONLY // not modify,but need 
 	UINT8 MT_Y_Home(CALL_STYLE_E eCall)
 	{
 		UINT32 i;
-		if(eCall == e_NormalCheck_Call && Get_Fix_OC_Status() == EN_OPEN) // not at free position
+		if(eCall == e_NormalCheck_Call) // not at free position
 		{
 			//moto_work_stat(1, MOTO_WORK_STAT_RUN);
 			moto_work_stat_2(1, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
 		}
 		//
-		if(Get_Fix_OC_Status() == EN_OPEN)
+		if(HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL) == EN_CLOSE)
 		{
 			Fix_Motor_Enable();
 			Fix_Motor_ClockWise(); // free
 			for(i = 0; i < 2000; i++)
 			{
-				if(Get_Fix_OC_Status() == EN_CLOSE)
-				{
-					IT_SYS_DlyMs(5);
-					if(Get_Fix_OC_Status() == EN_CLOSE) break;
-				}
+				Fix_Motor_Run(FIX_MOTOR_PULSE_UP_TIME, FIX_MOTOR_PULSE_DOWN_TIME);
+//				if(Get_Fix_OC_Status() == EN_CLOSE)
+//				{
+//					IT_SYS_DlyMs(5);
+//					if(Get_Fix_OC_Status() == EN_CLOSE) break;
+//				}
 			}
 		}
-		if(eCall == e_NormalCheck_Call && Get_Fix_OC_Status() == EN_CLOSE)
+		if(eCall == e_NormalCheck_Call && HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL) == EN_OPEN)
 		{
 			//moto_work_stat(1, MOTO_WORK_STAT_OK);
 			moto_work_stat_2(1, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
-		}else if(eCall == e_NormalCheck_Call && Get_Fix_OC_Status() == EN_OPEN){
+		}else if(eCall == e_NormalCheck_Call && HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL) == EN_CLOSE){
 			moto_work_stat_2(1, MOTO_WORK_STAT_OK, e_BUILD_PRESS_FAIL);
 		}
 		return e_Feedback_Success;
@@ -673,8 +726,8 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 				Valve_Liquid_Exec(EN_CLOSE);
 			}
 		}
-		//		
-		if(EN_OPEN == Get_Out_OC_Status()) // not at out position
+		//	
+		if(EN_OPEN == HW_LEVEL_GetOC(OC_OUT_CHANNEL)) // not at out position
 		{
 			Fix_Motor_Enable();
 			OutIn_Motor_AntiClockWise(); // out
@@ -682,10 +735,10 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 			nTempTime = nCurTime;
 			for(i = 0; i < 35000; i++)
 			{
-				if(EN_CLOSE == Get_Out_OC_Status())
+				if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
 				{
 					IT_SYS_DlyMs(5);
-					if(EN_CLOSE == Get_Out_OC_Status()) break;
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL)) break;
 				}
 				if(eCall == e_NormalCheck_Call) // check press
 				{
@@ -975,93 +1028,47 @@ UINT8 MT_X_MoveToPosRel_only(void)
 #if USE_STM32F407_ONLY // not modify 
 	UINT8 MT_Y_MoveToPosRel(CALL_STYLE_E eCall)
 	{
+		UINT32 i = 0;
+		if(eCall == e_NormalCheck_Call)
+		{
+			//moto_work_stat(1, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
+			moto_work_stat_2(1, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
+		}
+		// fix motor not at oc postion
 
-//		if(eCall == e_NormalCheck_Call)
-//		{
-//			//moto_work_stat(1, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
-//			moto_work_stat_2(1, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
-//		}
-//		//
+		if (EN_OPEN == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
+		{
 
-//		// not detect the single of home at the begining, moving long diatance
-
-//			if (1 == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
-//			{
-//				// long distance
-//				MV_InitPara(Motor_Y, 4000, 8000, 100, 10);
-//				// OC is on the right, right step
-//				MV_Move(Motor_Y, 35000, e_Dir_Neg); // comes far the OC
-
-//				while (1 == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL)) // OC detection is not enable
-//				{
-//					if (e_True == MV_IsFinished(Motor_Y))
-//					{
-//						MV_Stop(Motor_Y);
-//						if(eCall == e_NormalCheck_Call)
-//						{
-//							collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);	
-//							//moto_work_stat(1, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
-//							moto_work_stat_2(1, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-//						}
-//						return e_Feedback_Error;
-//					}
-//				}
-
-//				/* 增加临时运行时序 */
-//				MV_Move(Motor_Y, 600, e_Dir_Neg);  /* 继续运行 */
-//				while (e_False == MV_IsFinished(Motor_Y));
-//				/* 增加临时运行时序 */
-
-//				IT_SYS_DlyMs(3);
-//				MV_Stop(Motor_Y);
-//			}
-//			else
-//			{
-//				/* 增加临时运行时序 */
-//				MV_InitPara(Motor_Y, 4000, 8000, 100, 10);
-//				MV_Move(Motor_Y, 20000, e_Dir_Pos);
-
-//				while (0 == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL)) // OC detection is not enable
-//				{
-//					if (e_True == MV_IsFinished(Motor_Y))
-//					{
-//						MV_Stop(Motor_Y);
-//						if(eCall == e_NormalCheck_Call)
-//						{
-//							collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
-//							//moto_work_stat(1, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
-//							moto_work_stat_2(1, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-//						}
-//						return e_Feedback_Error;
-//					}
-//				}
-
-//				MV_Move(Motor_Y, 600, e_Dir_Neg);  /* 继续运行 */
-//				while (e_False == MV_IsFinished(Motor_Y));
-
-//				IT_SYS_DlyMs(3);
-//				MV_Stop(Motor_Y);
-//				/* 增加临时运行时序 */
-//			}
-//	//	}
-
-//		//
-//		g_tAxisPosStatus.nAxisY = 0;
-//		g_tAxisPosStatus.eAxisY = E_AXIS_Y_POS_HOME;
-//		//---------------------------------------------------
-//		// set to the default moving parameters
-//		MV_InitPara(Motor_Y,
-//					tMvoingPara.nFreqMin,
-//					tMvoingPara.nFreqMax,
-//					tMvoingPara.nFreqInc,
-//					tMvoingPara.nFreqSam);
-//		//
-//		if(eCall == e_NormalCheck_Call)
-//		{
-//			//moto_work_stat(1, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
-//			moto_work_stat_2(1, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
-//		}
-//		return e_Feedback_Success;
+			Fix_Motor_Enable();
+			Fix_Motor_AntiClockWise();
+			for(i = 0; i < 35000; i++)
+			{
+				if(EN_CLOSE == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
+				{
+					IT_SYS_DlyMs(5);
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL)) break;
+				}
+				Fix_Motor_Run(FIX_MOTOR_PULSE_UP_TIME, FIX_MOTOR_PULSE_DOWN_TIME);
+			}
+			//
+			if(i >= 35000)
+			{
+				if(eCall == e_NormalCheck_Call)
+				{
+					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);	
+					//moto_work_stat(1, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
+					moto_work_stat_2(1, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+				}
+				return e_Feedback_Error;
+			}
+		}
+		//
+		if(eCall == e_NormalCheck_Call)
+		{
+			//moto_work_stat(1, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
+			moto_work_stat_2(1, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
+		}
+		return e_Feedback_Success;
 	}
 
 #else //USE_STM32F407_ONLY
@@ -1193,158 +1200,200 @@ void  HW_FPGA_RST_L(void)
 
 // outputs
 //
-UINT8  HW_Valve_On(UINT8 chIndex)
-{
-    IO_ UINT8  XRAM_ chOffset = 0;
-    IO_ UINT32 IRAM_  nAddr     = 0;
-    IO_ UINT16 IRAM_  anBuffer[2];
+#if USE_STM32F407_ONLY
+	UINT8  HW_Valve_On(UINT8 chIndex)
+	{
+		if(chIndex == EN_VALVE_LIQUID)
+		{
+			Valve_Liquid_Exec(EN_OPEN);
+		}else if(chIndex == EN_VALVE_AIR){
+			Valve_Air_Exec(EN_OPEN);
+		}
+	}
+#else
+	UINT8  HW_Valve_On(UINT8 chIndex)
+	{
+		IO_ UINT8  XRAM_ chOffset = 0;
+		IO_ UINT32 IRAM_  nAddr     = 0;
+		IO_ UINT16 IRAM_  anBuffer[2];
 
-    // attention: 0-on, 1-off.
+		// attention: 0-on, 1-off.
 
-    // fpga
-    /* if( (chIndex >= 0) && (chIndex <= 5) )    // 0 ~ 5 */
-    if (chIndex <= 5)   /* 0 ~ 5 */
-    {
-        chOffset = chIndex - 0;
-        //m_nIoValves |= ((UINT16)1 << chOffset);
-        m_nIoValves &= ~((UINT16)1 << chOffset);
-        // address
-        nAddr = (UINT32)FPGA_WR_VALVE_01_06;
-        // value
-        anBuffer[0] = m_nIoValves;
-        // write to the fpga
-        FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
-        //
-        printf("valve %d on\r\n", chIndex);
-    }
-    // main mcu
-    else if ((chIndex >= 6) && (chIndex <= 20))
-    {
-        // keep
-    }
-    // error
-    else
-    {
-        SYS_ErrorMark((UINT8)ERR_COMMAND_NO_VALID, chIndex);
-        return e_Feedback_Error;
-    }
+		// fpga
+		/* if( (chIndex >= 0) && (chIndex <= 5) )    // 0 ~ 5 */
+		if (chIndex <= 5)   /* 0 ~ 5 */
+		{
+			chOffset = chIndex - 0;
+			//m_nIoValves |= ((UINT16)1 << chOffset);
+			m_nIoValves &= ~((UINT16)1 << chOffset);
+			// address
+			nAddr = (UINT32)FPGA_WR_VALVE_01_06;
+			// value
+			anBuffer[0] = m_nIoValves;
+			// write to the fpga
+			FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
+			//
+			printf("valve %d on\r\n", chIndex);
+		}
+		// main mcu
+		else if ((chIndex >= 6) && (chIndex <= 20))
+		{
+			// keep
+		}
+		// error
+		else
+		{
+			SYS_ErrorMark((UINT8)ERR_COMMAND_NO_VALID, chIndex);
+			return e_Feedback_Error;
+		}
 
-    return e_Feedback_Success;
-}
+		return e_Feedback_Success;
+	}
+#endif //UINT8  HW_Valve_On(UINT8 chIndex)
 
-//
-UINT8  HW_Valve_Off(UINT8 chIndex)
-{
-    IO_ UINT8  XRAM_ chOffset = 0;
-    IO_ UINT32 IRAM_  nAddr 	= 0;
-    IO_ UINT16 IRAM_  anBuffer[2];
 
-    // attention: 0-on, 1-off.
+#if USE_STM32F407_ONLY
+	UINT8  HW_Valve_Off(UINT8 chIndex)
+	{
+		if(chIndex == EN_VALVE_LIQUID)
+		{
+			Valve_Liquid_Exec(EN_CLOSE);
+		}else if(chIndex == EN_VALVE_AIR){
+			Valve_Air_Exec(EN_CLOSE);
+		}
+	}		
+#else
+	UINT8  HW_Valve_Off(UINT8 chIndex)
+	{
+		IO_ UINT8  XRAM_ chOffset = 0;
+		IO_ UINT32 IRAM_  nAddr 	= 0;
+		IO_ UINT16 IRAM_  anBuffer[2];
 
-    // fpga
-    /* if( (chIndex >= 0) && (chIndex <= 5) )    // 0 ~ 5 */
-    if (chIndex <= 5)
-    {
-        /* if( (chIndex >= 0) && (chIndex <= 15) ) */
-        if (chIndex <= 15)
-        {
-            chOffset = chIndex - 0;
-            m_nIoValves |= ((UINT16)1 << chOffset);
-            //m_nIoValves &= ~((UINT16)1 << chOffset);
-            // address
-            nAddr = (UINT32)FPGA_WR_VALVE_01_06;
-            // value
-            anBuffer[0] = m_nIoValves;
-        }
-        // write to the fpga
-        FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
-        //
-        printf("valve %d off\r\n", chIndex);
-    }
-    // main mcu
-    else if ((chIndex >= 6) && (chIndex <= 20))
-    {
-        // keep
-    }
-    // error
-    else
-    {
-        SYS_ErrorMark((UINT8)ERR_COMMAND_NO_VALID, chIndex);
-        return e_Feedback_Error;
-    }
+		// attention: 0-on, 1-off.
 
-    return e_Feedback_Success;
-}
+		// fpga
+		/* if( (chIndex >= 0) && (chIndex <= 5) )    // 0 ~ 5 */
+		if (chIndex <= 5)
+		{
+			/* if( (chIndex >= 0) && (chIndex <= 15) ) */
+			if (chIndex <= 15)
+			{
+				chOffset = chIndex - 0;
+				m_nIoValves |= ((UINT16)1 << chOffset);
+				//m_nIoValves &= ~((UINT16)1 << chOffset);
+				// address
+				nAddr = (UINT32)FPGA_WR_VALVE_01_06;
+				// value
+				anBuffer[0] = m_nIoValves;
+			}
+			// write to the fpga
+			FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
+			//
+			printf("valve %d off\r\n", chIndex);
+		}
+		// main mcu
+		else if ((chIndex >= 6) && (chIndex <= 20))
+		{
+			// keep
+		}
+		// error
+		else
+		{
+			SYS_ErrorMark((UINT8)ERR_COMMAND_NO_VALID, chIndex);
+			return e_Feedback_Error;
+		}
 
+		return e_Feedback_Success;
+	}
+
+#endif //UINT8  HW_Valve_Off(UINT8 chIndex)
 
 
 //------------------------------
 // DC motor control
 /* 有效频率范围15K - 25KHz */
-UINT8  HW_PUMP_Pulse(UINT32 nFreq, enum eDirection eDir)
-{
-    IO_ UINT32 IRAM_  nAddr 	= 0;
-    IO_ UINT16 IRAM_  anBuffer[2];
-    //
-    IO_ UINT32 XRAM_  nFqCnt    = 0;
-
-    //----- 1. direction -----
-    // address
-    nAddr = (UINT32)FPGA_WR_PUMP_DIR;
-    // value
-    if (e_Dir_Neg == eDir)
-    {
-        anBuffer[0] = 0x00000000;
-    }
-    else
-    {
-        anBuffer[0] = 0x00000001;
-    }
-    // write the fpga
-    FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
-    //----- 2. frequence -----
-    // address
-    nAddr = (UINT32)FPGA_WR_PUMP_FQ_CNT;
-    // value
-    // attentio: the fpga's sysclk = 25000000Hz
-#if 0  // 2015_04_08-11shi-changed by LHT	
-    nFqCnt = 12500000 / (nFreq + 1);      // nFreq != 0, half-freq-count, 12.5MHz/nFreq
+#if USE_STM32F407_ONLY
+	UINT8  HW_PUMP_Pulse(UINT32 nFreq, enum eDirection eDir)
+	{	
+		// 25000
+		if(nFreq > PUMP_PWM_LEVEL_HIGHEST)  nFreq = PUMP_PWM_LEVEL_HIGHEST;
+		////if(nDir != e_Dir_Neg || nDir != e_Dir_Pos) return;
+		if(eDir == e_Dir_Pos){
+			Pump_AntiClockWise();
+		}else if(eDir == e_Dir_Neg){
+			Pump_ClockWise();
+		}
+		Pump_Speed_Set(nFreq);
+	}
+	
 #else
-    if (nFreq >= 25000)
-    {
-        nFqCnt = 25000;
-    }
-    else
-    {
-        nFqCnt = nFreq;
-    }
+	
+	UINT8  HW_PUMP_Pulse(UINT32 nFreq, enum eDirection eDir)
+	{
+		IO_ UINT32 IRAM_  nAddr 	= 0;
+		IO_ UINT16 IRAM_  anBuffer[2];
+		//
+		IO_ UINT32 XRAM_  nFqCnt    = 0;
+
+		//----- 1. direction -----
+		// address
+		nAddr = (UINT32)FPGA_WR_PUMP_DIR;
+		// value
+		if (e_Dir_Neg == eDir)
+		{
+			anBuffer[0] = 0x00000000;
+		}
+		else
+		{
+			anBuffer[0] = 0x00000001;
+		}
+		// write the fpga
+		FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
+		//----- 2. frequence -----
+		// address
+		nAddr = (UINT32)FPGA_WR_PUMP_FQ_CNT;
+		// value
+		// attentio: the fpga's sysclk = 25000000Hz
+	#if 0  // 2015_04_08-11shi-changed by LHT	
+		nFqCnt = 12500000 / (nFreq + 1);      // nFreq != 0, half-freq-count, 12.5MHz/nFreq
+	#else
+		if (nFreq >= 25000)
+		{
+			nFqCnt = 25000;
+		}
+		else
+		{
+			nFqCnt = nFreq;
+		}
+	#endif
+		anBuffer[0] = (UINT16)(nFqCnt & 0xFFFF);
+		anBuffer[1] = (UINT16)((nFqCnt >> 16) & 0xFFFF);
+		// write the fpga
+		FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 2); // 2 half-word
+		//----- 3. run or stop -----
+		// address
+		nAddr = (UINT32)FPGA_WR_PUMP_RUN;
+		// value
+		if (0 == nFreq)  // stop
+		{
+			anBuffer[0] = 0x00000000;
+			//
+			printf("pump off\r\n");
+		}
+		else             // run
+		{
+			anBuffer[0] = 0x00000001;
+			//
+			printf("pump on at %0.5d ticks per ms (total 25000 ticks per ms)\r\n", (int)nFqCnt);
+		}
+		// write the fpga
+		FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
+
+		return e_Feedback_Success;
+	}
 #endif
-    anBuffer[0] = (UINT16)(nFqCnt & 0xFFFF);
-    anBuffer[1] = (UINT16)((nFqCnt >> 16) & 0xFFFF);
-    // write the fpga
-    FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 2); // 2 half-word
-    //----- 3. run or stop -----
-    // address
-    nAddr = (UINT32)FPGA_WR_PUMP_RUN;
-    // value
-    if (0 == nFreq)  // stop
-    {
-        anBuffer[0] = 0x00000000;
-        //
-        printf("pump off\r\n");
-    }
-    else             // run
-    {
-        anBuffer[0] = 0x00000001;
-        //
-        printf("pump on at %0.5d ticks per ms (total 25000 ticks per ms)\r\n", (int)nFqCnt);
-    }
-    // write the fpga
-    FPGA_WriteBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
-
-    return e_Feedback_Success;
-}
-
+	
+	
 //
 UINT32 HW_PUMP_GetFeedbackPulse(void)
 {
@@ -1534,59 +1583,89 @@ UINT32 HW_ADC_PressPara(UINT32 nK, UINT32 nB)
 //------------------------------
 // get the level of the OC and the electrode
 /* 预留的悬空位返回状态1表示光耦未被遮挡 */
-UINT8  HW_LEVEL_GetOC(UINT8 chIndex)
-{
-    IO_ UINT32 IRAM_  nAddr 	= 0;
-    IO_ UINT16 IRAM_  anBuffer[2];
-    IO_ UINT8  IRAM_  chValue   = 1;  /* 预留的悬空位返回状态1表示光耦未被遮挡 */
+#if USE_STM32F407_ONLY
+	UINT8  HW_LEVEL_GetOC(UINT8 chIndex)
+	{
+		UINT8 nVal;
+		switch(chIndex)
+		{
+			case OC_HOME_CHANNEL:
+			{
+				nVal =  Get_In_OC_Status();
+			}
+			break;
+			case OC_OUT_CHANNEL:
+			{
+				nVal =  Get_Out_OC_Status();
+			}
+			break;
+			case OC_SAMPLE_RELEA_CHANNEL:
+			{
+				nVal = Get_Fix_OC_Status();
+			}
+			break;
+			default:break;
+		}
+		return nVal;
+	}
+	
+#else
+	
+	UINT8  HW_LEVEL_GetOC(UINT8 chIndex)
+	{
+		IO_ UINT32 IRAM_  nAddr 	= 0;
+		IO_ UINT16 IRAM_  anBuffer[2];
+		IO_ UINT8  IRAM_  chValue   = 1;  /* 预留的悬空位返回状态1表示光耦未被遮挡 */
 
-    //
-    nAddr = (UINT32)FPGA_RD_OC_01_03;
-    //
-    FPGA_ReadBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
-    //
-    switch (chIndex)
-    {
-        case 0:
-        {
-            if (0 != (anBuffer[0] & 0x0001))
-                chValue = 0x01;
-            else
-                chValue = 0x00;
-            break;
-        }
-        case 1:
-        {
-            if (0 != (anBuffer[0] & 0x0002))
-                chValue = 0x01;
-            else
-                chValue = 0x00;
-            break;
-        }
-        case 2:
-        {
-            if (0 != (anBuffer[0] & 0x0004))
-                chValue = 0x01;
-            else
-                chValue = 0x00;
-            break;
-        }
-        case 3:
-        {
-            if (0 != (anBuffer[0] & 0x0008))
-                chValue = 0x01;
-            else
-                chValue = 0x00;
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
+		//
+		nAddr = (UINT32)FPGA_RD_OC_01_03;
+		//
+		FPGA_ReadBuffer((UINT16 *)anBuffer, nAddr, 1); // 1 half-word
+		//
+		switch (chIndex)
+		{
+			case 0:
+			{
+				if (0 != (anBuffer[0] & 0x0001))
+					chValue = 0x01;
+				else
+					chValue = 0x00;
+				break;
+			}
+			case 1:
+			{
+				if (0 != (anBuffer[0] & 0x0002))
+					chValue = 0x01;
+				else
+					chValue = 0x00;
+				break;
+			}
+			case 2:
+			{
+				if (0 != (anBuffer[0] & 0x0004))
+					chValue = 0x01;
+				else
+					chValue = 0x00;
+				break;
+			}
+			case 3:
+			{
+				if (0 != (anBuffer[0] & 0x0008))
+					chValue = 0x01;
+				else
+					chValue = 0x00;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
 
-    return chValue;
-}
+		return chValue;
+	}
+#endif
+	
 
 UINT8  HW_LEVEL_GetElectrode(UINT8 chIndex)
 {
@@ -1644,30 +1723,32 @@ UINT8  HW_LEVEL_GetElectrode(UINT8 chIndex)
 
 /* 滤波方式获取电极状态 */
 #define  ELECTRODE_GET_FILTER_NUM  5
-UINT8 hw_filter_get_electrode(UINT8 chIndex)
-{
-    UINT8 n, cnt;
-
-    cnt = 0;
-    for (n = 0; n < ELECTRODE_GET_FILTER_NUM; n++)
-    {
-        if (1 == HW_LEVEL_GetElectrode(chIndex))
-        {
-            cnt += 1;
-        }
-    }
-
-    if (cnt > (ELECTRODE_GET_FILTER_NUM / 2))  /* 以超过半数的值为准 */
-    {
-        return  1;
-    }
-
-#ifdef   DEBUG_TEST  /* 临时调试用，设置电极永远无法获取溢出信号 */
-    return  1;
+#if USE_STM32F407_ONLY
+	UINT8 hw_filter_get_electrode(UINT8 chIndex)
+	{
+		return 1; 
+		//return Get_Elec_Status();
+	}
 #else
-    return  0;
+	UINT8 hw_filter_get_electrode(UINT8 chIndex)
+	{
+		UINT8 n, cnt;
+
+		cnt = 0;
+		for (n = 0; n < ELECTRODE_GET_FILTER_NUM; n++)
+		{
+			if (1 == HW_LEVEL_GetElectrode(chIndex))
+			{
+				cnt += 1;
+			}
+		}
+
+		if (cnt > (ELECTRODE_GET_FILTER_NUM / 2))  /* 以超过半数的值为准 */
+		{
+			return  1;
+		}
+	}
 #endif
-}
 
 //------------------------------
 // the ADC of the slave CPU
@@ -1780,29 +1861,29 @@ UINT8  HW_EN_WBC(enum eFlag bOn)
 //
 void  HW_Start_WBC(void)
 {
-#if 0
+#if USE_STM32F407_ONLY
+	memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
+	ADC1_Init();
+	ADC_SoftwareStartConv(ADC1);				
+#else
     HW_SW_AdcWBC(e_True);          /* switch on : WBC and RBC */
     HW_SW_AdcRBC(e_False);		   // RBC is back channel for WBC
     HW_EN_WBC(e_True);             /* get the ADC data */
-#else	
-	memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
-	ADC1_Init();
-	ADC_SoftwareStartConv(ADC1);
 #endif
 }
 
 //
 void  HW_End_WBC(void)
 {
-#if 0
-    HW_SW_AdcWBC(e_False);
-    HW_SW_AdcRBC(e_False);	// RBC is back channel for WBC
-    // close the ADC channel
-    HW_EN_WBC(e_False);
-#else
+#if USE_STM32F407_ONLY
 	ADC_Cmd(ADC1, DISABLE);
 	ADC_DMACmd(ADC1, DISABLE);
 	DMA_Cmd(DMA2_Stream0, DISABLE);
+#else
+	HW_SW_AdcWBC(e_False);
+    HW_SW_AdcRBC(e_False);	// RBC is back channel for WBC
+    // close the ADC channel
+    HW_EN_WBC(e_False);
 #endif
 }
 
@@ -2022,7 +2103,7 @@ UINT8  HW_LWIP_Working(UINT32 nTickList, UINT32 nTickAdc,  EN_FPGA_DATA_FLAG eFl
 	//memset((void*)&ADC_Status, 0, sizeof(ADC_Status_InitTypeDef));
 	//ADC1_Init();
 	//ADC_SoftwareStartConv(ADC1);
-#if 1
+#if USE_STM32F407_ONLY
 	if(ADC_Status.nSFlag == 1)
 	{
 		//ADC_Send(CMD_DATA_NET_TEST, ADC_Status.nID, g_ADC_Buffer);

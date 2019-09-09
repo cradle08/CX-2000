@@ -485,19 +485,15 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             //
             case CMD_CTRL_VALVE:
             {
-				#if USE_STM32F407_ONLY
-					Valve_Exec(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
-				#else
-					if (0 == (*(pchCmdBuf + 9)))
-					{
-						//#if USE_STM32F407_ONLY
-						HW_Valve_Off(*(pchCmdBuf + 8));
-					}
-					else
-					{
-						HW_Valve_On(*(pchCmdBuf + 8));
-					}
-				#endif
+				if (0 == (*(pchCmdBuf + 9)))
+				{
+					//#if USE_STM32F407_ONLY
+					HW_Valve_Off(*(pchCmdBuf + 8));
+				}
+				else
+				{
+					HW_Valve_On(*(pchCmdBuf + 8));
+				}
                 //
             }
 			break;
@@ -508,13 +504,8 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                                           *(pchCmdBuf +  9),
                                           *(pchCmdBuf + 10),
                                           *(pchCmdBuf + 11));
-                //
-				#if USE_STM32F407_ONLY
-					Pump_Exec(e_Dir_Pos, nWord);
-				#else
-					HW_PUMP_Pulse(nWord, e_Dir_Pos);
-				#endif
-                //
+                
+				HW_PUMP_Pulse(nWord, e_Dir_Pos);
             }
 			break;
             //
@@ -530,7 +521,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				MT_X_MoveToPosRel(e_NormalCheck_Call); // out
             }
 			break;
-            case CMD_CTRL_MOT_RELEASE:  /* 释放芯片 */
+            case CMD_CTRL_MOT_RELEASE:  /* 释放芯片 */  // home lift oc, MoveToPos look for oc
 			{
 				MT_Y_Home(e_NormalCheck_Call);
 			}
@@ -543,20 +534,12 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             break;
             case CMD_CTRL_MOT_IN_ONLY:  /* 单独驱动大电机进仓 */
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					MT_X_Home_only();
-				#endif
+				MT_X_Home_only();
 			}
             break;
             case CMD_CTRL_MOT_OUT_ONLY: /* 单独驱动大电机出仓 */
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					MT_X_MoveToPosRel_only();
-				#endif
+				MT_X_MoveToPosRel_only();
 			}
             break;
 			case CMD_CTRL_MOT_X_IN_ADD:
@@ -625,22 +608,18 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 //
             }
 			break;
-            case CMD_CTRL_NET_TEST://CMD_CTRL_NET_TEST://CMD_CTRL_TEST_WBC: // count func
+            case CMD_CTRL_TEST_WBC://CMD_CTRL_NET_TEST://CMD_CTRL_TEST_WBC: // count func
             {
                 nCommand  = CMD_CTRL_TEST_WBC;
                 // bSendBack = e_True;
-				#if USE_STM32F407_ONLY
-				
-				#else
-					if(e_Feedback_Success != MSG_TestingFunc((UINT8*)g_achFbkSdLogBuf, &nParaLen))
-					{
+				if(e_Feedback_Success != MSG_TestingFunc((UINT8*)g_achFbkSdLogBuf, &nParaLen))
+				{
 
 
-						HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);
-						HW_Valve_Off(INDEX_VALVE_PUMP);
-						HW_Valve_Off(INDEX_VALVE_WBC);
-					}
-				#endif
+					HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);
+					HW_Valve_Off(INDEX_VALVE_PUMP);
+					HW_Valve_Off(INDEX_VALVE_WBC);
+				}
 				printf("adc end: id=%d, sendid=%d\r\n", \
 						(int)ADC_Status.nID, (int)ADC_Status.nSendID);
 				// send debug info for count
@@ -658,7 +637,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				Reset_Udp_Count(0);
 			}
 			break;
-			case CMD_CTRL_TEST_WBC: //CMD_CTRL_TEST_WBC: //CMD_CTRL_TEST_WBC
+			case CMD_CTRL_NET_TEST: //CMD_CTRL_NET_TEST: //CMD_CTRL_TEST_WBC
 			{
 				UINT32 nCurTicks, nTempTicks;
 			
@@ -770,11 +749,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
 			case CMD_CTRL_MOT_IN_CHECK:
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					MT_X_IN_Self_Check(e_SelfCheck_Call);
-				#endif
+				MT_X_IN_Self_Check(e_SelfCheck_Call);
 			}
 			break;
 
@@ -2331,8 +2306,8 @@ UINT8 MSG_TestingFunc(void)
 				memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
 				*pDILen = nDILen;
 #endif			
-				collect_return_hdl(COLLECT_RET_FAIL_WBC_BSK);
-				return e_Feedback_Error;
+//				collect_return_hdl(COLLECT_RET_FAIL_WBC_BSK);
+//				return e_Feedback_Error;
 			}
 		}
     }
@@ -2360,9 +2335,9 @@ UINT8 MSG_TestingFunc(void)
 		memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
 		*pDILen = nDILen;
 #endif
-		collect_return_hdl(COLLECT_RET_FAIL_WBC_TOUCH);
-		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
-		return e_Feedback_Error;	
+//		collect_return_hdl(COLLECT_RET_FAIL_WBC_TOUCH);
+//		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
+//		return e_Feedback_Error;	
 	}
 	// -----check wbc elec v before count-----------
 	if(EN_WBC_V_LOW != Get_WBC_V_Status(COUNT_WBC_TOUCH_CHECK_V)) // the wbc_v is not low than COUNT_WBC_MIN_V(1.8v)
@@ -2378,9 +2353,9 @@ UINT8 MSG_TestingFunc(void)
 		memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
 		*pDILen = nDILen;
 #endif
-		collect_return_hdl(COLLECT_RET_FAIL_WBC_ELECTRODE);
-		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
-		return e_Feedback_Error;
+//		collect_return_hdl(COLLECT_RET_FAIL_WBC_ELECTRODE);
+//		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
+//		return e_Feedback_Error;
 	}
 
 	//-------second 3s stop-----------

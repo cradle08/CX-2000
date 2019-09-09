@@ -117,8 +117,8 @@ extern IO_ UINT16 g_ADC3_Value[ADC3_CHECK_NUM];
 
 #define FIX_MOTOR_PULSE_UP_TIME			155
 #define FIX_MOTOR_PULSE_DOWN_TIME		155
-#define OUTIN_MOTOR_PULSE_UP_TIME		70
-#define OUTIN_MOTOR_PULSE_DOWN_TIME		70
+#define OUTIN_MOTOR_PULSE_UP_TIME		60
+#define OUTIN_MOTOR_PULSE_DOWN_TIME		60
 
 #define	OUTIN_MOTOR_HOME_TIME	10000
 
@@ -129,8 +129,8 @@ enum{
 };
 
 enum{
-	EN_VALVE_LIQUID = 0,
-	EN_VALVE_AIR    = 1
+	EN_VALVE_AIR	= 0,
+	EN_VALVE_LIQUID = 1
 };
 
 enum{
@@ -185,8 +185,8 @@ void Fix_Motor_Run(UINT16 nUp, UINT16 nDown);
 void OutIn_Motor_Init(void);
 void OutIn_Motor_Enable(void);
 void OutIn_Motor_Disable(void);
-void OutIn_Motor_AntiClockWise(void);
-void OutIn_Motor_ClockWise(void);
+void OutIn_Motor_AntiClockWise(void); //out
+void OutIn_Motor_ClockWise(void); // in
 void OutIn_Motor_Run(UINT16 nUp, UINT16 nDown);
 UINT8 OutIn_Motor_Home(eModeType eMode);
 UINT8 OutIn_Motor_Out(eModeType eMode);

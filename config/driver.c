@@ -677,9 +677,11 @@ void Pump_init(void)
 
 void Pump_Speed_Set(UINT16 nSpeed) // 0-499
 {
-	// ch2
-	if(nSpeed > PUMP_PWM_TIM_ARR) return; 
-	TIM_SetCompare2(PUMP_PWM_TIM, nSpeed);
+	if(nSpeed > PUMP_PWM_LEVEL_HIGHEST){
+		TIM_SetCompare2(PUMP_PWM_TIM, PUMP_PWM_LEVEL_HIGHEST);
+	}else{
+		TIM_SetCompare2(PUMP_PWM_TIM, nSpeed);
+	}
 }
 
 
@@ -736,11 +738,11 @@ void Pump_Exec(UINT8 nDir, UINT16 nFreq)
 	if(nFreq > PUMP_PWM_TIM_ARR) return;
 	///////if(nDir != e_Dir_Neg || nDir != e_Dir_Pos) return;
 	
-//	if(nDir == e_Dir_Pos){
-//		Pump_AntiClockWise();
-//	}else if(nDir == e_Dir_Neg){
-//		Pump_ClockWise();
-//	}
+	if(nDir == e_Dir_Pos){
+		Pump_AntiClockWise();
+	}else if(nDir == e_Dir_Neg){
+		Pump_ClockWise();
+	}
 	//
 	//Pump_init();
 	Pump_Speed_Set(nFreq);
