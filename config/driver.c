@@ -671,6 +671,8 @@ void Pump_init(void)
 	
 	TIM4_PWM_Init(PUMP_PWM_TIM_ARR, PUMP_PWM_TIM_PSC); //84M/42=2M, 1M/25000=59.52
 	//Pump_Speed_Set(24998);
+	Pump_Speed_Set(PUMP_PWM_LEVEL_CLOSE);
+	//TIM_SetCompare2(PUMP_PWM_TIM, PUMP_PWM_LEVEL_CLOSE);
 }
 
 void Pump_Speed_Set(UINT16 nSpeed) // 0-499
@@ -697,8 +699,9 @@ void TIM4_PWM_Init(UINT32 Arr, UINT32 Psc)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //推挽复用输出
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;        //上拉
 	GPIO_Init(PUMP_CLK_PORT, &GPIO_InitStructure);        
-	GPIO_ResetBits(PUMP_CLK_PORT, PUMP_CLK_PIN);
+	GPIO_SetBits(PUMP_CLK_PORT, PUMP_CLK_PIN);
 	
+	TIM_DeInit(PUMP_PWM_TIM);
 	TIM_TimeBaseStructure.TIM_Prescaler=Psc;  //定时器分频
 	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //向上计数模式
 	TIM_TimeBaseStructure.TIM_Period=Arr;   //自动重装载值
@@ -708,7 +711,7 @@ void TIM4_PWM_Init(UINT32 Arr, UINT32 Psc)
 	//初始化TIM14 Channel1 PWM模式	 
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1; //选择定时器模式:TIM脉冲宽度调制模式2
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //比较输出使能
-	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low; 
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;//TIM_OCPolarity_Low; 
 	//TIM_OCInitStructure.TIM_Pulse = ;
 	TIM_OC2Init(PUMP_PWM_TIM, &TIM_OCInitStructure);  
 
@@ -731,7 +734,7 @@ void Pump_ClockWise(void) // zhu qi
 void Pump_Exec(UINT8 nDir, UINT16 nFreq)
 {
 	if(nFreq > PUMP_PWM_TIM_ARR) return;
-	if(nDir != e_Dir_Neg || nDir != e_Dir_Pos) return;
+	///////if(nDir != e_Dir_Neg || nDir != e_Dir_Pos) return;
 	
 //	if(nDir == e_Dir_Pos){
 //		Pump_AntiClockWise();
@@ -739,7 +742,7 @@ void Pump_Exec(UINT8 nDir, UINT16 nFreq)
 //		Pump_ClockWise();
 //	}
 	//
-	Pump_init();
+	//Pump_init();
 	Pump_Speed_Set(nFreq);
 }
 
@@ -963,68 +966,6 @@ void OutIn_Motor_Run(UINT16 nUp, UINT16 nDown)
 	Delay_US(nDown);
 }
 
-UINT8 OutIn_Motor_Home(eModeType eMode)
-{
-	UINT32 nCurTime = 0, nTempTime, i;
-
-	// check fix motor position
-	if(EN_OPEN == Get_Fix_OC_Status()){ // need to fixable
-		// fix motor fixable
-	}else{
-		if(eMode == EN_MODE_NORMAL) // return status for normal exec
-		{
-			moto_work_stat_2(1, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
-			moto_work_stat_2(1, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
-		}
-	}
-	// start status msg
-	if(eMode == EN_MODE_NORMAL)
-	{
-		moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
-	}
-	// check outin motor in
-	if(EN_OPEN == Get_In_OC_Status())
-	{
-		// out
-		Fix_Motor_Enable();
-		OutIn_Motor_ClockWise(); // in
-		nCurTime = IT_SYS_GetTicks();
-		nTempTime = nCurTime;
-		for(i = 0; i < 35000; i++)
-		{
-			if(EN_CLOSE == Get_In_OC_Status())
-			{
-				IT_SYS_DlyMs(5);
-				if(EN_CLOSE == Get_In_OC_Status()) break;
-			}
-			OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-			nCurTime = IT_SYS_GetTicks();
-			if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
-			{
-				collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
-				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-				break;
-			}			
-		}
-		// add step
-		if(g_Record_Param.nXAddStep > 0)
-		{
-			for(i = 0; i < g_Record_Param.nXAddStep; i++)
-			{
-				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-			}
-		}
-	}else{
-		//
-	}
-	// end status msg
-	if(eMode == EN_MODE_NORMAL)
-	{
-		moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
-	}
-	
-	return e_Feedback_Success;
-}
 
 
 UINT8 OutIn_Motor_Out(eModeType eMode)
@@ -1071,7 +1012,6 @@ UINT8 OutIn_Motor_Out(eModeType eMode)
 		}
 	
 	}
-	
 	// check outin motor 
 	if(EN_CLOSE == Get_In_OC_Status())
 	{
@@ -1117,7 +1057,7 @@ UINT8 OutIn_Motor_Out(eModeType eMode)
 }
 
 // Digital Register
-void SPI3_Init(void)
+void DRegister_SPI_Init(void)
 {
 	  GPIO_InitTypeDef  GPIO_InitStructure;
 	  SPI_InitTypeDef  SPI_InitStructure;
@@ -1150,9 +1090,9 @@ void SPI3_Init(void)
 	  RCC_APB1PeriphResetCmd(D_REGISTER_SPI_SRC,ENABLE);//复位SPI1
 	  RCC_APB1PeriphResetCmd(D_REGISTER_SPI_SRC,DISABLE);//停止复位SPI1
 
-	  SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;  //设置SPI单向或者双向的数据模式:SPI设置为双线双向全双工
+	  SPI_InitStructure.SPI_Direction = SPI_Direction_1Line_Tx;  //设置SPI单向或者双向的数据模式:SPI设置为双线双向全双工
 	  SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		//设置SPI工作模式:设置为主SPI
-	  SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;		//设置SPI的数据大小:SPI发送接收8位帧结构
+	  SPI_InitStructure.SPI_DataSize = SPI_DataSize_16b;		//设置SPI的数据大小:SPI发送接收8位帧结构
 	  SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;		//串行同步时钟的空闲状态为高电平
 	  SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	//串行同步时钟的第二个跳变沿（上升或下降）数据被采样
 	  SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		//NSS信号由硬件（NSS管脚）还是软件（使用SSI位）管理:内部NSS信号有SSI位控制
@@ -1168,15 +1108,33 @@ void SPI3_Init(void)
 
 void DResistor_Init(void)
 {
+	DRegister_SPI_Init();
 
+}
 
+void DRegister_SetSpeed(u8 SPI_BaudRatePrescaler)
+{
+//  assert_param(IS_SPI_BAUDRATE_PRESCALER(SPI_BaudRatePrescaler));//判断有效性
+	SPI1->CR1&=0XFFC7;//位3-5清零，用来设置波特率
+	SPI1->CR1|=SPI_BaudRatePrescaler;	//设置SPI1速度 
+	SPI_Cmd(SPI3,ENABLE); //使能SPI1
+} 
+
+void DRegister_Write(UINT16 nCmd)
+{		 			 
+    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET){}//等待发送区空  
+	SPI_I2S_SendData(SPI3, nCmd);	    
 }
 
 void DResistor_Set(UINT8 nIndex, UINT8 nVal)
 {
-
+	UINT16 nCmd =0, nCh = 0x01;
+	
+	nCmd = ((1 << 15) | ( nVal << 7));
+	DRegister_Write(nCmd);
 
 }
+
 
 void Driver_Debug(UINT8 nIndex)
 {
@@ -1294,20 +1252,30 @@ void Driver_Debug(UINT8 nIndex)
 		break;
 		case 7:
 		{
-			printf("press=%d, xk=%d\r\n", Get_Press_ADC(), Get_XK_ADC());
+			
 			//WBC_48V_Self_Check();
 			//Valve1_Self_Check();
 			//Valve2_Self_Check();
 			printf(" start\r\n");
-			
+//			
+//			Valve_Liquid_Exec(EN_OPEN);
+//			IT_SYS_DlyMs(500);
+//			Valve_Liquid_Exec(EN_CLOSE);
+//			IT_SYS_DlyMs(500);
+//			
 			//-----pump
 			Valve_Air_Exec(EN_OPEN);
-			//Valve_Liquid_Exec(EN_OPEN);
+			Valve_Liquid_Exec(EN_OPEN);
+			IT_SYS_DlyMs(500);
+			
 			//Pump_AntiClockWise();
-			Pump_Exec(e_Dir_Pos, PUMP_PWM_RUN);
+			TIM_SetCompare2(PUMP_PWM_TIM, PUMP_PWM_LEVEL_BEST);//Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_BEST);
+			IT_SYS_DlyMs(500);
 			IT_SYS_DlyMs(500);
 			IT_SYS_DlyMs(500);
 			Valve_Air_Exec(EN_CLOSE);
+			Valve_Liquid_Exec(EN_CLOSE);
+			TIM_SetCompare2(PUMP_PWM_TIM, PUMP_PWM_LEVEL_CLOSE);//Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 
 			
 			//----------- out in
@@ -1318,7 +1286,8 @@ void Driver_Debug(UINT8 nIndex)
 //				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
 //			}
 			//---------- press
-			printf("press=%10d\r\n", (int)Get_Press_Value(5));
+			printf("press=%010d, xk=%d\r\n", Get_Press_ADC(), Get_XK_ADC());
+			printf("press=%010d\r\n", (int)Get_Press_Value(5));
 			
 			//Pump_Exec(e_Dir_Pos, 14999);
 			//Pump_Self_Check();

@@ -40,8 +40,9 @@ extern IO_ UINT16 g_ADC3_Value[ADC3_CHECK_NUM];
 #define PUMP_PWM_TIM_SRC		RCC_APB1Periph_TIM4	
 #define PUMP_PWM_TIM_ARR		24999 //25000
 #define PUMP_PWM_TIM_PSC		41    //42
-#define PUMP_PWM_STOP			24999
-#define PUMP_PWM_RUN			14999
+#define PUMP_PWM_LEVEL_CLOSE	0
+#define PUMP_PWM_LEVEL_BEST		10000
+#define PUMP_PWM_LEVEL_HIGHEST	25000
 
 #define PUMP_DIR_PORT			GPIOD
 #define PUMP_DIR_PIN			GPIO_Pin_4
@@ -177,8 +178,8 @@ UINT8 Get_In_OC_Status(void);
 void Fix_Motor_Init(void);
 void Fix_Motor_Enable(void);
 void Fix_Motor_Disable(void);
-void Fix_Motor_AntiClockWise(void);
-void Fix_Motor_ClockWise(void);
+void Fix_Motor_AntiClockWise(void); // fixable
+void Fix_Motor_ClockWise(void); // free
 void Fix_Motor_Run(UINT16 nUp, UINT16 nDown);
 
 void OutIn_Motor_Init(void);

@@ -518,43 +518,27 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             }
 			break;
             //
-            case CMD_CTRL_MOT_IN:
+            case CMD_CTRL_MOT_IN: //
             {
-				#if USE_STM32F407_ONLY
-					OutIn_Motor_Home(EN_MODE_NORMAL);
-				#else
-					MT_X_Home(e_NormalCheck_Call); // go home
-				#endif
-                //
+				//OutIn_Motor_Home(EN_MODE_NORMAL);
+				MT_X_Home(e_NormalCheck_Call); // go home
             }
 			break;
             //
             case CMD_CTRL_MOT_OUT:
             {
-				#if USE_STM32F407_ONLY
-					//OutIn_Motor_Out(EN_MODE_NORMAL);
-				#else
-					MT_X_MoveToPosRel(e_NormalCheck_Call); // out
-				#endif
-                //
+				MT_X_MoveToPosRel(e_NormalCheck_Call); // out
             }
 			break;
             case CMD_CTRL_MOT_RELEASE:  /* 释放芯片 */
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					MT_Y_Home(e_NormalCheck_Call);
-				#endif
+				MT_Y_Home(e_NormalCheck_Call);
 			}
             break;
             case CMD_CTRL_MOT_LOCK:     /* 锁定芯片 */
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					MT_Y_MoveToPosRel(e_NormalCheck_Call);
-				#endif
+				MT_Y_MoveToPosRel(e_NormalCheck_Call);
+
 			}
             break;
             case CMD_CTRL_MOT_IN_ONLY:  /* 单独驱动大电机进仓 */
@@ -577,17 +561,12 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             break;
 			case CMD_CTRL_MOT_X_IN_ADD:
 			{
-				// 
-				#if USE_STM32F407_ONLY
-				
-				#else
-					nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
-					g_Record_Param.nXAddStep = nShort;
-					g_Record_Param.nFlag = FLASH_INIT_FLAG;
-					printf("Set Moto X Add Step%d\r\n", g_Record_Param.nXAddStep);
-					Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
-					Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_MOTO_X_IN_ADD, e_Feedback_Success);
-				#endif
+				nShort = PL_UnionTwoBytes(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+				g_Record_Param.nXAddStep = nShort;
+				g_Record_Param.nFlag = FLASH_INIT_FLAG;
+				printf("Set Moto X Add Step%d\r\n", g_Record_Param.nXAddStep);
+				Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
+				Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_MOTO_X_IN_ADD, e_Feedback_Success);
 			}
 			break;
             case CMD_CTRL_REGISTER:
@@ -786,11 +765,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
 			case CMD_CTRL_MOT_OUT_CHECK:
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					MT_X_OUT_Self_Check(e_SelfCheck_Call);
-				#endif
+				MT_X_OUT_Self_Check(e_SelfCheck_Call);
 			}
 			break;
 			case CMD_CTRL_MOT_IN_CHECK:
@@ -810,20 +785,12 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
 			case CMD_CTRL_BUILD_PRESS_CHECK:
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					Build_Press_Self_Check();
-				#endif
+				Build_Press_Self_Check();
 			}
 			break;
 			case CMD_CTRL_AIRLIGHT_CHECK:
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					AirLight_Self_Check(e_SelfCheck_Call);
-				#endif
+				AirLight_Self_Check(e_SelfCheck_Call);
 			}
 			break;
 			case CMD_CTRL_GPUMP_CHECK:
@@ -838,11 +805,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
 			case CMD_CTRL_VALVE2_CHECK:
 			{
-				#if USE_STM32F407_ONLY
-				
-				#else
-					Valve2_Self_Check();
-				#endif
+				Valve2_Self_Check();
 			}
 			break;
 			case CMD_CTRL_DEBUG_GET_PRESS:
@@ -2710,30 +2673,33 @@ INT32 Build_Press_Self_Check(void)
 	IO_ UINT32 nTempTicks = 0;
 	IO_ UINT8 i;
 	
-//    if (E_AXIS_X_POS_HOME != MT_X_get_posi())
-//    {
-//		MT_X_IN_Self_Check(e_SelfCheck_Call);
-//        return e_Feedback_Error;
-//    }
-
-    HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
-//	HW_Valve_On(INDEX_VALVE_PUMP);
-//	HW_Valve_On(INDEX_VALVE_WBC);   // WBC
-//  IT_SYS_DlyMs(1000);
-	HW_Valve_Off(INDEX_VALVE_PUMP);  /* all the air way  CKP CHANGED 20171219*/
-    HW_Valve_Off(INDEX_VALVE_WBC);   // WBC
-    //==================
+	#if USE_STM32F407_ONLY
+		Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+		Valve_Air_Exec(EN_CLOSE);
+		Valve_Liquid_Exec(EN_CLOSE);	
+	#else
+		HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
+		HW_Valve_Off(INDEX_VALVE_PUMP);  /* all the air way  CKP CHANGED 20171219*/
+		HW_Valve_Off(INDEX_VALVE_WBC);   // WBC
+	#endif
+   
     // 1. build the pressure
-   // nPress = HW_ADC_SpiGetPress();  /* 获取泵压 */
+    // nPress = HW_ADC_SpiGetPress();  /* 获取泵压 */
 	nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
     nCurTicks = IT_SYS_GetTicks();  /* 获取系统时钟 */
 	nStartTicks = nCurTicks;
 	printf("Build start: tick=%08d, press=%010d, addpress=%010d\r\n", (int)(nCurTicks - nStartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
     if (nPress < BUILD_PRESS_RIGHT)
     {
-        HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);  // on, 25000 ticks per ms
-        HW_Valve_On(INDEX_VALVE_PUMP);    // all the air way
-        HW_Valve_Off(INDEX_VALVE_WBC);    // WBC
+		#if USE_STM32F407_ONLY
+			Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_BEST);
+			Valve_Air_Exec(EN_OPEN);
+			Valve_Liquid_Exec(EN_CLOSE);	
+		#else
+			HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);     // off
+			HW_Valve_Off(EN_OPEN);  /* all the air way  CKP CHANGED 20171219*/
+			HW_Valve_Off(INDEX_VALVE_WBC);   // WBC
+		#endif
         // detect the press 1 and press 2 all the time
         nCurTicks = IT_SYS_GetTicks();
         nLstTicks = nCurTicks;
@@ -2755,9 +2721,18 @@ INT32 Build_Press_Self_Check(void)
 				//
                 if (nPress >=  (INT32)BUILD_PRESS_RIGHT /*&& nPress <= BUILD_PRESS_MAX*/)
                 {
-					HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
-					HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
-					HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
+					#if USE_STM32F407_ONLY
+						Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+						Valve_Air_Exec(EN_CLOSE);
+						Valve_Liquid_Exec(EN_CLOSE);	
+					#else
+						HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
+						HW_Valve_Off(EN_CLOSE);  /* all the air way  CKP CHANGED 20171219*/
+						HW_Valve_Off(INDEX_VALVE_WBC);   // WBC
+					#endif
+//					HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
+//					HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
+//					HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
                     break;
                 }
 				printf("Building Press tick=%08d, press=%010d, addpress=%010d\r\n", (int)(nCurTicks - nStartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
@@ -2766,10 +2741,18 @@ INT32 Build_Press_Self_Check(void)
 			//HW_LWIP_Working_Recv_Handle(IT_LIST_GetTicks(), IT_ADC_GetTicks());
         }
         // turn off
-       
-        HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
-        HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
-		HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
+		#if USE_STM32F407_ONLY
+			Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+			Valve_Air_Exec(EN_CLOSE);
+			Valve_Liquid_Exec(EN_CLOSE);	
+		#else
+			HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
+			HW_Valve_Off(EN_CLOSE);  /* all the air way  CKP CHANGED 20171219*/
+			HW_Valve_Off(INDEX_VALVE_WBC);   // WBC
+		#endif
+//      HW_Valve_Off(INDEX_VALVE_PUMP); // all the air way
+//      HW_Valve_Off(INDEX_VALVE_WBC);  // WBC
+//		HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);    // off
         //-----------
         // to check the preeure
         //nPress = HW_ADC_SpiGetPress();
@@ -2791,7 +2774,7 @@ INT32 Build_Press_Self_Check(void)
     {
         // do nothing
         nCurTicks = IT_SYS_GetTicks();
-        //printf("\r\n OK tick - %0.8d, press - %d", (int)nCurTicks, (int)nPress);
+        printf("the Press is OK tick=%08d, press=%d", (int)nCurTicks, (int)nPress);
     }
 	printf("Build press success: tick=%08d, press=%010d, addpress=%010d\r\n", (int)(nCurTicks - nStartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
 	Msg_Return_Handle_16(e_Msg_Status, CMD_STATUS_BUILD_PRESS, e_Feedback_Success);
@@ -2828,8 +2811,14 @@ UINT8 AirLight_Self_Check(CALL_STYLE_E eCall)
 	printf("AirLight start: ticks=%08d, press=%010d, addpress=%010d\r\n", (int)nCurTicks, (int)nPress, (int)g_Record_Param.nAddPress);
 	if(eCall == e_PartTest_Call) // for part test
 	{
-		HW_Valve_Off(INDEX_VALVE_PUMP); 
-		HW_Valve_On(INDEX_VALVE_WBC); 
+		#if USE_STM32F407_ONLY
+			Valve_Air_Exec(EN_CLOSE);
+			Valve_Liquid_Exec(EN_OPEN);
+		#else
+			HW_Valve_Off(INDEX_VALVE_PUMP); 
+			HW_Valve_On(INDEX_VALVE_WBC); 
+		#endif
+		
 	}
 	while(nCurTicks <= (nLstTicks + TIME_AIRLIGHT_CHECK))
 	{
@@ -2852,8 +2841,13 @@ UINT8 AirLight_Self_Check(CALL_STYLE_E eCall)
 	}
 	if(eCall == e_PartTest_Call) // for part test
 	{
-		HW_Valve_Off(INDEX_VALVE_PUMP); 
-        HW_Valve_Off(INDEX_VALVE_WBC); 
+		#if USE_STM32F407_ONLY
+			Valve_Air_Exec(EN_CLOSE);
+			Valve_Liquid_Exec(EN_CLOSE);
+		#else
+			HW_Valve_Off(INDEX_VALVE_PUMP); 
+			HW_Valve_Off(INDEX_VALVE_WBC); 
+		#endif
 	}
 	/////////////
 	//Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_AIRLIGHT_PRESS, nCurPress);
@@ -2916,7 +2910,7 @@ _EXT_ UINT8 Negative_Pressure_Self_Check(void)
 	UINT32 StartTicks, EndTicks;
 	
 	#if USE_STM32F407_ONLY
-		Pump_Exec(e_Dir_Pos, PUMP_PRESS_FREQ);
+		Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_BEST);
 		Valve_Air_Exec(EN_OPEN);
 		Valve_Liquid_Exec(EN_CLOSE);	
 	#else
@@ -2934,7 +2928,7 @@ _EXT_ UINT8 Negative_Pressure_Self_Check(void)
 		if(nPress >= PRESS_BUILD)
 		{
 			#if USE_STM32F407_ONLY
-				Pump_Exec(e_Dir_Pos, PUMP_PRESS_OFF);
+				Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 				Valve_Air_Exec(EN_CLOSE);
 				Valve_Liquid_Exec(EN_CLOSE);
 			#else
@@ -2949,7 +2943,7 @@ _EXT_ UINT8 Negative_Pressure_Self_Check(void)
 	if((EndTicks - StartTicks) > TIME_OVER_TS_BUILD_PRESS)
 	{
 		#if USE_STM32F407_ONLY
-			Pump_Exec(e_Dir_Pos, PUMP_PRESS_OFF);
+			Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 			Valve_Air_Exec(EN_CLOSE);
 			Valve_Liquid_Exec(EN_CLOSE);
 		#else
@@ -3076,15 +3070,15 @@ _EXT_ UINT8 Pump_Self_Check(void)
 	
 	#if USE_STM32F407_ONLY
 		Pump_AntiClockWise(); // xi qi
-		Valve_Air_Exec(EN_OPEN);
-		Pump_Exec(e_Dir_Pos ,PUMP_PRESS_FREQ);
+		//Valve_Air_Exec(EN_OPEN);
+		Pump_Exec(e_Dir_Pos ,PUMP_PWM_LEVEL_BEST);
 		while((EndTicks - StartTicks) <= PUMP_SELF_CHECK_TIME)
 		{
 			EndTicks = IT_SYS_GetTicks();
 			IT_SYS_DlyMs(1);
 		}
-		Pump_Exec(e_Dir_Pos ,PUMP_PRESS_OFF);     // off
-		Valve_Air_Exec(EN_CLOSE);
+		Pump_Exec(e_Dir_Pos ,PUMP_PWM_LEVEL_CLOSE);     // off
+		//Valve_Air_Exec(EN_CLOSE);
 	#else
 		HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);
 		//HW_Valve_On(INDEX_VALVE_PUMP); 
