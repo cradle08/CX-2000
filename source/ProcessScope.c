@@ -559,16 +559,17 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 					DResistor_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
 				#else
 					HW_ADJ_SetResistor(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+				#endif
 					// todo
-					if(*(pchCmdBuf + 8) == 0)
-					{
-						g_Record_Param.nWBC =  *(pchCmdBuf + 9);
-						g_Record_Param.nFlag = FLASH_INIT_FLAG;
-						printf("Set WBC Value=%d\r\n", g_Record_Param.nWBC);
-						Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
-						Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_WBC_SET, e_Feedback_Success);
-					}
-                #endif
+				if(*(pchCmdBuf + 8) == 0)
+				{
+					g_Record_Param.nWBC =  *(pchCmdBuf + 9);
+					g_Record_Param.nFlag = FLASH_INIT_FLAG;
+					printf("Set WBC Value=%d\r\n", g_Record_Param.nWBC);
+					Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
+					Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_WBC_SET, e_Feedback_Success);
+				}
+                
             }
 			break;
 			case CMD_CTRL_TRANSMISSION_GAIN: // transmission gain
@@ -584,11 +585,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			break;
             case CMD_CTRL_WBC_ENABLE: //case CMD_CTRL_WBC_SWITCH:
             {
-				#if USE_STM32F407_ONLY
-				
-				#else
-					HW_EN_WBC((enum eFlag) * (pchCmdBuf + 8));
-				#endif
+				HW_EN_WBC((enum eFlag) * (pchCmdBuf + 8));
             }
 			break;
             //
@@ -859,16 +856,13 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             {
                 nCommand  = CMD_STATUS_OC;
                 bSendBack = e_True;
-                //
-				#if USE_STM32F407_ONLY
-				
-				#else
-					*(pchFbkBuf + 0) = HW_LEVEL_GetOC(0); //
-					*(pchFbkBuf + 1) = HW_LEVEL_GetOC(1); // out oc
-					*(pchFbkBuf + 2) = HW_LEVEL_GetOC(2); // 
-					*(pchFbkBuf + 3) = HW_LEVEL_GetOC(3);
-					nParaLen         = 4;
-				#endif
+                //  
+				*(pchFbkBuf + 0) = HW_LEVEL_GetOC(OC_HOME_CHANNEL); //
+				*(pchFbkBuf + 1) = HW_LEVEL_GetOC(OC_OUT_CHANNEL); // out oc
+				*(pchFbkBuf + 2) = HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL); // 
+				*(pchFbkBuf + 3) = HW_LEVEL_GetOC(OC_SAMPLE_HOLD_CHANNEL); // not use
+				nParaLen         = 4;
+
             }
 			break;
             case CMD_QUERY_EDTION:
@@ -887,21 +881,17 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 			{
                 bSendBack = e_True;
                 nCommand  = CMD_STATUS_MOT;
-				#if USE_STM32F407_ONLY
-				
-				#else
-					if (0 == *(pchCmdBuf +  8))  /* 进出仓电机 */
-					{
-						*(pchFbkBuf + 0) = 0;
-						*(pchFbkBuf + 1) = MT_X_get_posi();
-					}
-					else
-					{
-						*(pchFbkBuf + 0) = 1;
-						*(pchFbkBuf + 1) = MT_Y_get_posi();
-					}
-					nParaLen = 2;
-				#endif
+				if (0 == *(pchCmdBuf +  8))  /* 进出仓电机 */
+				{
+					*(pchFbkBuf + 0) = 0;
+					*(pchFbkBuf + 1) = MT_X_get_posi();
+				}
+				else
+				{
+					*(pchFbkBuf + 0) = 1;
+					*(pchFbkBuf + 1) = MT_Y_get_posi();
+				}
+				nParaLen = 2;
 			}
             break;
             case CMD_QUERY_PUMP_SPEED:  /* 查询泵转速 */

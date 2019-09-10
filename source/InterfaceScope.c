@@ -217,10 +217,10 @@ enum eAxisYPos MT_Y_get_posi(void)
 		UINT32 nCurTime = 0, nTempTime, i;
 
 		// check fix motor position
-		if(EN_OPEN == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))  // need to fixable
+		if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL) && EN_OPEN == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))  // need to fixable
 		{
 			#ifdef  MOTO_DOBULE_ENABLE
-				MT_Y_MoveToPosRel(eCall);
+				MT_Y_MoveToPosRel(eCall); // lock for oc
 			#endif
 		}else{
 			if(eCall == e_NormalCheck_Call) // return status for normal exec
@@ -235,8 +235,10 @@ enum eAxisYPos MT_Y_get_posi(void)
 			moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
 		}
 		// check outin motor in
+		printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_HOME_CHANNEL));
 		if(EN_OPEN == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) // not at in position
 		{
+			printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_HOME_CHANNEL));
 			OutIn_Motor_Enable();
 			OutIn_Motor_ClockWise(); // in
 			nCurTime = IT_SYS_GetTicks();
@@ -252,12 +254,14 @@ enum eAxisYPos MT_Y_get_posi(void)
 				nCurTime = IT_SYS_GetTicks();
 				if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
 				{
+					printf("In time out,ST=%d, ET=%d\r\n", (int)nTempTime, (int)nCurTime);
 					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
 					moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
 					OutIn_Motor_Disable();
 					return e_Feedback_Error;
 				}			
 			}
+			printf("step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
 			// add step
 			if(g_Record_Param.nXAddStep > 0)
 			{
@@ -266,6 +270,7 @@ enum eAxisYPos MT_Y_get_posi(void)
 					OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
 				}
 			}
+			printf("add step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
 		}else{
 			//
 		}
@@ -721,15 +726,18 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 			//StartTicks = IT_SYS_GetTicks();
 			if(nPress < PRESS_BUILD)
 			{
+				flag = 1; // low 
 				Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_BEST);
 				Valve_Air_Exec(EN_OPEN);
 				Valve_Liquid_Exec(EN_CLOSE);
 			}
 		}
 		//	
+		printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_OUT_CHANNEL));
 		if(EN_OPEN == HW_LEVEL_GetOC(OC_OUT_CHANNEL)) // not at out position
 		{
-			Fix_Motor_Enable();
+			printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_OUT_CHANNEL));
+			OutIn_Motor_Enable();
 			OutIn_Motor_AntiClockWise(); // out
 			nCurTime = IT_SYS_GetTicks();
 			nTempTime = nCurTime;
@@ -738,17 +746,22 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 				if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
 				{
 					IT_SYS_DlyMs(5);
-					if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL)) break;
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+					{
+						printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_OUT_CHANNEL));
+						break;
+					}						
 				}
-				if(eCall == e_NormalCheck_Call) // check press
+				if(eCall == e_NormalCheck_Call && flag != 0) // check press
 				{
 					nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
 					if(nPress >= PRESS_BUILD)
 					{
+						flag = 0;
 						Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 						Valve_Air_Exec(EN_CLOSE);
 						Valve_Liquid_Exec(EN_CLOSE);		
-						printf("2 X out-check press at first: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
+						//printf("2 X out-check press at first: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
 					}
 				}
 				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
@@ -757,12 +770,16 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 				{
 					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
 					moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+					printf("Out-in motor out timeout\r\n");
 					break;
 				}			
 			}
+			printf("step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
 		}else{
 			//
 		}
+		OutIn_Motor_Disable();
+		Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 		// check press again
 		if(eCall == e_NormalCheck_Call)
 		{
@@ -789,8 +806,11 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 						Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 						Valve_Air_Exec(EN_CLOSE);
 						Valve_Liquid_Exec(EN_CLOSE);
+						break;
 					}
+					IT_SYS_DlyMs(5);
 				}
+				printf("4 X out-check press: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
 			}
 		}
 		// create press timeout check
@@ -799,12 +819,13 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 			if((EndTicks - StartTicks) > TIME_OVER_TS_BUILD_PRESS) // create press fail
 			{
 				moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_FAIL);
-				printf("4 X out at last,build press error: t=%08d, npress=%010d, addpress=%010d\r\n", (int)(EndTicks - StartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
+				printf("5 X out at last,build press error: t=%08d, npress=%010d, addpress=%010d\r\n", (int)(EndTicks - StartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
 			}else{
 				moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
-				printf("4 X out at last,build press success: t=%08d, npress=%010d, addpress=%010d\r\n", (int)(EndTicks - StartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
+				printf("5 X out at last,build press success: t=%08d, npress=%010d, addpress=%010d\r\n", (int)(EndTicks - StartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
 			}
 		}
+		Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 		#ifdef  MOTO_DOBULE_ENABLE
 			MT_Y_Home(eCall);
 		#endif	
@@ -1040,7 +1061,7 @@ UINT8 MT_X_MoveToPosRel_only(void)
 		{
 
 			Fix_Motor_Enable();
-			Fix_Motor_AntiClockWise();
+			Fix_Motor_AntiClockWise(); // fixable
 			for(i = 0; i < 35000; i++)
 			{
 				if(EN_CLOSE == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
@@ -1055,14 +1076,17 @@ UINT8 MT_X_MoveToPosRel_only(void)
 			{
 				if(eCall == e_NormalCheck_Call)
 				{
+					printf("Fix motor out step\r\n");
 					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);	
 					//moto_work_stat(1, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
 					moto_work_stat_2(1, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
 				}
+				Fix_Motor_Disable();
 				return e_Feedback_Error;
 			}
 		}
 		//
+		Fix_Motor_Disable();
 		if(eCall == e_NormalCheck_Call)
 		{
 			//moto_work_stat(1, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
@@ -1726,7 +1750,7 @@ UINT8  HW_LEVEL_GetElectrode(UINT8 chIndex)
 #if USE_STM32F407_ONLY
 	UINT8 hw_filter_get_electrode(UINT8 chIndex)
 	{
-		return 1; 
+		return GPIO_ReadInputDataBit(ELEC_PORT, ELEC_PIN);
 		//return Get_Elec_Status();
 	}
 #else
