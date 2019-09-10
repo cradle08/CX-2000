@@ -669,23 +669,14 @@ void Pump_init(void)
 	GPIO_Init(PUMP_DIR_PORT, &GPIO_InitStructure);
 	GPIO_SetBits(PUMP_DIR_PORT, PUMP_DIR_PIN);
 	
-	TIM4_PWM_Init(PUMP_PWM_TIM_ARR, PUMP_PWM_TIM_PSC); //84M/42=2M, 1M/25000=59.52
+	Pump_PWM_Init(PUMP_PWM_TIM_ARR, PUMP_PWM_TIM_PSC); //84M/42=2M, 1M/25000=59.52
 	//Pump_Speed_Set(24998);
 	Pump_Speed_Set(PUMP_PWM_LEVEL_CLOSE);
 	//TIM_SetCompare2(PUMP_PWM_TIM, PUMP_PWM_LEVEL_CLOSE);
 }
 
-void Pump_Speed_Set(UINT16 nSpeed) // 0-499
-{
-	if(nSpeed > PUMP_PWM_LEVEL_HIGHEST){
-		TIM_SetCompare2(PUMP_PWM_TIM, PUMP_PWM_LEVEL_HIGHEST);
-	}else{
-		TIM_SetCompare2(PUMP_PWM_TIM, nSpeed);
-	}
-}
 
-
-void TIM4_PWM_Init(UINT32 Arr, UINT32 Psc)
+void Pump_PWM_Init(UINT32 Arr, UINT32 Psc)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
@@ -731,6 +722,15 @@ void Pump_AntiClockWise(void) // xi qi
 void Pump_ClockWise(void) // zhu qi
 {
 	GPIO_ResetBits(PUMP_DIR_PORT, PUMP_DIR_PIN);
+}
+
+void Pump_Speed_Set(UINT16 nSpeed) // 0-499
+{
+	if(nSpeed > PUMP_PWM_LEVEL_HIGHEST){
+		TIM_SetCompare2(PUMP_PWM_TIM, PUMP_PWM_LEVEL_HIGHEST);
+	}else{
+		TIM_SetCompare2(PUMP_PWM_TIM, nSpeed);
+	}
 }
 
 void Pump_Exec(UINT8 nDir, UINT16 nFreq)
@@ -908,6 +908,45 @@ void Fix_Motor_Run(UINT16 nUp, UINT16 nDown)
 }
 
 
+void OutIn_Motor_PWM_Init(UINT32 Arr, UINT32 Psc)
+{
+	// TIM3_CH3
+	GPIO_InitTypeDef GPIO_InitStructure;
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	TIM_OCInitTypeDef  TIM_OCInitStructure;
+
+	RCC_APB1PeriphClockCmd(OUTIN_MOTOR_PWM_TIM_SRC,ENABLE);  	//TIM14时钟使能    
+	RCC_AHB1PeriphClockCmd(OUTIN_MOTOR_CLK_SRC, ENABLE); 	//使能PORTF时钟	
+	GPIO_PinAFConfig(OUTIN_MOTOR_CLK_PORT,OUTIN_MOTOR_CLK_PIN_AF, OUTIN_MOTOR_CLK_PORT_AF); 
+
+	GPIO_InitStructure.GPIO_Pin = OUTIN_MOTOR_CLK_PIN;           //GPIOC8
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;        //复用功能
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	//速度100MHz
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //推挽复用输出
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;        //上拉
+	GPIO_Init(OUTIN_MOTOR_CLK_PORT, &GPIO_InitStructure);        
+	GPIO_SetBits(OUTIN_MOTOR_CLK_PORT, PUMP_CLK_PIN);
+	
+	TIM_DeInit(OUTIN_MOTOR_PWM_TIM);
+	TIM_TimeBaseStructure.TIM_Prescaler=Psc;  //定时器分频
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //向上计数模式
+	TIM_TimeBaseStructure.TIM_Period=Arr;   //自动重装载值
+	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 
+	TIM_TimeBaseInit(OUTIN_MOTOR_PWM_TIM,&TIM_TimeBaseStructure);//初始化定时器14
+
+	//初始化TIM3 Channel1 PWM模式	 
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1; //选择定时器模式:TIM脉冲宽度调制模式2
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //比较输出使能
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;//TIM_OCPolarity_Low; 
+	//TIM_OCInitStructure.TIM_Pulse = ;
+	TIM_OC3Init(OUTIN_MOTOR_PWM_TIM, &TIM_OCInitStructure);  
+
+	TIM_OC3PreloadConfig(OUTIN_MOTOR_PWM_TIM, TIM_OCPreload_Enable); 
+	TIM_ARRPreloadConfig(OUTIN_MOTOR_PWM_TIM,ENABLE);
+	TIM_Cmd(OUTIN_MOTOR_PWM_TIM, ENABLE);  //
+}
+	
+
 // Out_In Motor
 void OutIn_Motor_Init(void)
 {
@@ -920,6 +959,7 @@ void OutIn_Motor_Init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(OUTIN_MOTOR_EN_PORT, &GPIO_InitStructure);
+	GPIO_ResetBits(OUTIN_MOTOR_EN_PORT, OUTIN_MOTOR_EN_PIN);
 	// dir
 	GPIO_InitStructure.GPIO_Pin = OUTIN_MOTOR_DIR_PIN; 
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -927,17 +967,19 @@ void OutIn_Motor_Init(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(OUTIN_MOTOR_DIR_PORT, &GPIO_InitStructure);
-	// clk
-	GPIO_InitStructure.GPIO_Pin = OUTIN_MOTOR_CLK_PIN; 
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(OUTIN_MOTOR_CLK_PORT, &GPIO_InitStructure);
-	
-	GPIO_ResetBits(OUTIN_MOTOR_EN_PORT, OUTIN_MOTOR_EN_PIN);
 	GPIO_ResetBits(OUTIN_MOTOR_DIR_PORT, OUTIN_MOTOR_DIR_PIN);
-	GPIO_ResetBits(OUTIN_MOTOR_CLK_PORT, OUTIN_MOTOR_CLK_PIN);
+	// clk
+	#if OUTIN_MOTOR_USE_PWM
+		OutIn_Motor_PWM_Init(OUTIN_MOTOR_PWM_TIM_ARR, OUTIN_MOTOR_PWM_TIM_PSC); //84M/42=2M, 1M/25000=59.52
+	#else
+		GPIO_InitStructure.GPIO_Pin = OUTIN_MOTOR_CLK_PIN; 
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+		GPIO_Init(OUTIN_MOTOR_CLK_PORT, &GPIO_InitStructure);
+		GPIO_ResetBits(OUTIN_MOTOR_CLK_PORT, OUTIN_MOTOR_CLK_PIN);
+	#endif
 }
 
 void OutIn_Motor_Enable(void)
@@ -969,94 +1011,119 @@ void OutIn_Motor_Run(UINT16 nUp, UINT16 nDown)
 }
 
 
-
-UINT8 OutIn_Motor_Out(eModeType eMode)
+void OutIn_Motor_Speed_Set(UINT16 nSpeed) // 0-499
 {
-	UINT32 nCurTime = 0, nTempTime, i;
-	INT32 nPress = 0;
-	
-	if(eMode == EN_MODE_NORMAL)
-	{
-		moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
-		nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
-		printf("1 X out-check press at first: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
-		if(nPress < PRESS_BUILD)
-		{
-			HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);
-			HW_Valve_On(INDEX_VALVE_PUMP);
-			HW_Valve_Off(INDEX_VALVE_WBC);			
-		}
-	}
-	// check i
-	if(EN_OPEN == Get_Out_OC_Status())
-	{
-		
-		// oc out
-		Fix_Motor_Enable();
-		OutIn_Motor_AntiClockWise(); // out
-		nCurTime = IT_SYS_GetTicks();
-		nTempTime = nCurTime;
-		for(i = 0; i < 35000; i++)
-		{
-			if(EN_CLOSE == Get_Out_OC_Status())
-			{
-				IT_SYS_DlyMs(5);
-				if(EN_CLOSE == Get_Out_OC_Status()) break;
-			}
-			OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-			nCurTime = IT_SYS_GetTicks();
-			if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
-			{
-				collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
-				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-				break;
-			}			
-		}
-	
-	}
-	// check outin motor 
-	if(EN_CLOSE == Get_In_OC_Status())
-	{
-		// in
-		Fix_Motor_Enable();
-		OutIn_Motor_ClockWise(); // in
-		nCurTime = IT_SYS_GetTicks();
-		nTempTime = nCurTime;
-		for(i = 0; i < 35000; i++)
-		{
-			if(EN_CLOSE == Get_In_OC_Status())
-			{
-				IT_SYS_DlyMs(5);
-				if(EN_CLOSE == Get_In_OC_Status()) break;
-			}
-			OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-			nCurTime = IT_SYS_GetTicks();
-			if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
-			{
-				collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
-				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-				break;
-			}			
-		}
-		// add step
-		if(g_Record_Param.nXAddStep > 0)
-		{
-			for(i = 0; i < g_Record_Param.nXAddStep; i++)
-			{
-				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-			}
-		}
+	if(nSpeed > OUTIN_MOTOR_PWM_LEVEL_HIGHEST){
+		TIM_SetCompare3(OUTIN_MOTOR_PWM_TIM, OUTIN_MOTOR_PWM_LEVEL_HIGHEST);
 	}else{
-		//
+		TIM_SetCompare3(OUTIN_MOTOR_PWM_TIM, nSpeed);
 	}
-	// end status msg
-	if(eMode == EN_MODE_NORMAL)
-	{
-		moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
-	}
-	
-	return e_Feedback_Success;
 }
+
+void OutIn_Motor_Exec(UINT8 nDir, UINT16 nFreq)
+{
+	if(nFreq > PUMP_PWM_TIM_ARR) return;
+	///////if(nDir != e_Dir_Neg || nDir != e_Dir_Pos) return;
+	
+	if(nDir == e_Dir_Pos){
+		OutIn_Motor_AntiClockWise(); // out
+	}else if(nDir == e_Dir_Neg){
+		OutIn_Motor_ClockWise(); //in
+	}
+	//
+	//Pump_init();
+	OutIn_Motor_Speed_Set(nFreq);
+}
+
+
+
+//UINT8 OutIn_Motor_Out(eModeType eMode)
+//{
+//	UINT32 nCurTime = 0, nTempTime, i;
+//	INT32 nPress = 0;
+//	
+//	if(eMode == EN_MODE_NORMAL)
+//	{
+//		moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
+//		nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
+//		printf("1 X out-check press at first: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
+//		if(nPress < PRESS_BUILD)
+//		{
+//			HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);
+//			HW_Valve_On(INDEX_VALVE_PUMP);
+//			HW_Valve_Off(INDEX_VALVE_WBC);			
+//		}
+//	}
+//	// check i
+//	if(EN_OPEN == Get_Out_OC_Status())
+//	{
+//		
+//		// oc out
+//		Fix_Motor_Enable();
+//		OutIn_Motor_AntiClockWise(); // out
+//		nCurTime = IT_SYS_GetTicks();
+//		nTempTime = nCurTime;
+//		for(i = 0; i < 35000; i++)
+//		{
+//			if(EN_CLOSE == Get_Out_OC_Status())
+//			{
+//				IT_SYS_DlyMs(5);
+//				if(EN_CLOSE == Get_Out_OC_Status()) break;
+//			}
+//			OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+//			nCurTime = IT_SYS_GetTicks();
+//			if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
+//			{
+//				collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+//				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+//				break;
+//			}			
+//		}
+//	
+//	}
+//	// check outin motor 
+//	if(EN_CLOSE == Get_In_OC_Status())
+//	{
+//		// in
+//		Fix_Motor_Enable();
+//		OutIn_Motor_ClockWise(); // in
+//		nCurTime = IT_SYS_GetTicks();
+//		nTempTime = nCurTime;
+//		for(i = 0; i < 35000; i++)
+//		{
+//			if(EN_CLOSE == Get_In_OC_Status())
+//			{
+//				IT_SYS_DlyMs(5);
+//				if(EN_CLOSE == Get_In_OC_Status()) break;
+//			}
+//			OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+//			nCurTime = IT_SYS_GetTicks();
+//			if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
+//			{
+//				collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+//				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+//				break;
+//			}			
+//		}
+//		// add step
+//		if(g_Record_Param.nXAddStep > 0)
+//		{
+//			for(i = 0; i < g_Record_Param.nXAddStep; i++)
+//			{
+//				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+//			}
+//		}
+//	}else{
+//		//
+//	}
+//	// end status msg
+//	if(eMode == EN_MODE_NORMAL)
+//	{
+//		moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
+//	}
+//	
+//	return e_Feedback_Success;
+//}
 
 // Digital Register
 void DRegister_SPI_Init(void)
@@ -1253,6 +1320,34 @@ void Driver_Debug(UINT8 nIndex)
 		}
 		break;
 		case 7:
+		{
+			printf("start\r\n");
+			OutIn_Motor_Enable();
+			for(i = 0; i < 5; i++)
+			{
+				OutIn_Motor_Exec(e_Dir_Pos,  OUTIN_MOTOR_PWM_LEVEL_BEST);
+				IT_SYS_DlyMs(500);
+				IT_SYS_DlyMs(500);
+				OutIn_Motor_Exec(e_Dir_Neg,  OUTIN_MOTOR_PWM_LEVEL_BEST);
+				IT_SYS_DlyMs(500);
+				IT_SYS_DlyMs(500);
+			}
+			OutIn_Motor_Exec(e_Dir_Neg,  OUTIN_MOTOR_PWM_LEVEL_CLOSE);
+//			printf("2\r\n");
+			IT_SYS_DlyMs(500);
+			IT_SYS_DlyMs(500);
+//			IT_SYS_DlyMs(500);
+//			printf("3\r\n");
+//			for(i = 0; i < 6000; i++)
+//			{
+//				OutIn_Motor_Run(70, 70);
+//			}
+			OutIn_Motor_Disable();
+			printf("end\r\n");
+
+		}
+		break;
+		case 8:
 		{
 			
 			//WBC_48V_Self_Check();

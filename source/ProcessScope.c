@@ -569,7 +569,6 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 					Flash_Write_Param(&g_Record_Param, RECORD_PARAM_LEN);
 					Msg_Return_Handle_8(e_Msg_Status, CMD_STATUS_WBC_SET, e_Feedback_Success);
 				}
-                
             }
 			break;
 			case CMD_CTRL_TRANSMISSION_GAIN: // transmission gain
@@ -828,13 +827,14 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 bSendBack = e_True;
                 //
 				#if USE_STM32F407_ONLY
-				
+					nShort = Get_Press_ADC();
 				#else
 					nShort = HW_ADC_SpiGetADC(INDEX_PRESS);  // 0: HGB, 1: press1
-					*(pchFbkBuf + 0) = (UINT8)((nShort >> 8) & 0xff);
-					*(pchFbkBuf + 1) = (UINT8)((nShort >> 0) & 0xff);
-					nParaLen         = 2;
 				#endif
+				*(pchFbkBuf + 0) = (UINT8)((nShort >> 8) & 0xff);
+				*(pchFbkBuf + 1) = (UINT8)((nShort >> 0) & 0xff);
+				nParaLen         = 2;
+				
             }
 			break;
             case CMD_QUERY_ELECTRODE:
@@ -843,7 +843,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 bSendBack = e_True;
                 //
 				#if USE_STM32F407_ONLY
-				
+					// ...
 				#else
 					*(pchFbkBuf + 0) = HW_LEVEL_GetElectrode(0);
 					*(pchFbkBuf + 1) = HW_LEVEL_GetElectrode(1);
@@ -2465,23 +2465,28 @@ UINT8 MSG_TestingFunc(void)
 		
 		//------to check the ELECTRODE------
 		nTemp = hw_filter_get_electrode(INDEX_ELECTRODE);
-        if (ELECTRODE_WASTE == nTemp)  /* 流程正常结束 */
-        {
-			HW_End_WBC();
-			//Send_Last_FIFO_Data();
-			printf("\r\nCount Status: Success, ticks=%08d, adc_ticks=%08d, udp=%d, q=%d, f=%d, elec=%d, wbc_v=%d, press=%010d\r\n",\
-				(int)IT_LIST_GetTicks(), (int)IT_ADC_GetTicks(), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail,\
-				 nTemp,(int)Get_WBC_V_Value(), (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
-#ifdef DEBUG_INFO_UP_LOAD
-	    	sprintf((char*)sTempInfo, "\r\nCount Status: Success, ticks=%08d, adc_ticks=%08d, udp=%d, q=%d, f=%d, elec=%d, wbc_v=%d, press=%010d\r\n",\
-				(int)IT_LIST_GetTicks(), (int)IT_ADC_GetTicks(), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail,\
-				nTemp,(int)Get_WBC_V_Value(), (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
-			Append_Debug_Info((INT8*)pDInfo+nDILen, (INT8*)sTempInfo, (UINT16*)&nDILen);
-			memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
-			*pDILen = nDILen;
-#endif		
-            break;
-        }
+		if (ELECTRODE_WASTE == nTemp) 
+		{
+			nTemp = hw_filter_get_electrode(INDEX_ELECTRODE);
+			if (ELECTRODE_WASTE == nTemp)  /* 流程正常结束 */
+			{
+				HW_End_WBC();
+				//Send_Last_FIFO_Data();
+				printf("\r\nCount Status: Success, ticks=%08d, adc_ticks=%08d, udp=%d, q=%d, f=%d, elec=%d, wbc_v=%d, press=%010d\r\n",\
+					(int)IT_LIST_GetTicks(), (int)IT_ADC_GetTicks(), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail,\
+					 nTemp,(int)Get_WBC_V_Value(), (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+	#ifdef DEBUG_INFO_UP_LOAD
+				sprintf((char*)sTempInfo, "\r\nCount Status: Success, ticks=%08d, adc_ticks=%08d, udp=%d, q=%d, f=%d, elec=%d, wbc_v=%d, press=%010d\r\n",\
+					(int)IT_LIST_GetTicks(), (int)IT_ADC_GetTicks(), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail,\
+					nTemp,(int)Get_WBC_V_Value(), (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+				Append_Debug_Info((INT8*)pDInfo+nDILen, (INT8*)sTempInfo, (UINT16*)&nDILen);
+				memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
+				*pDILen = nDILen;
+	#endif		
+				break;
+			}
+		}
+
 //		
 //		
 //		//------to check press------

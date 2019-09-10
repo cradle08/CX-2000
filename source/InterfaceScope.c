@@ -214,7 +214,7 @@ enum eAxisYPos MT_Y_get_posi(void)
 #if USE_STM32F407_ONLY
 	UINT8 MT_X_Home(CALL_STYLE_E eCall) //UINT8 OutIn_Motor_Home(eModeType eMode)
 	{
-		UINT32 nCurTime = 0, nTempTime, i;
+		UINT32 nCurTime = 0, nTempTime = 0, nDlyTime = 0, i;
 
 		// check fix motor position
 		if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL) && EN_OPEN == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))  // need to fixable
@@ -243,34 +243,79 @@ enum eAxisYPos MT_Y_get_posi(void)
 			OutIn_Motor_ClockWise(); // in
 			nCurTime = IT_SYS_GetTicks();
 			nTempTime = nCurTime;
-			for(i = 0; i < 35000; i++)
-			{
-				if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+			#if OUTIN_MOTOR_USE_PWM
+				OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_BEST);
+				while(nCurTime <= nTempTime + MOTO_SELF_CHECK_TIMEOUT)
 				{
-					IT_SYS_DlyMs(5);
-					if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) break;
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+					{
+						IT_SYS_DlyMs(2);
+						if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))	break;
+					}
+					nCurTime = IT_SYS_GetTicks();					
 				}
-				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-				nCurTime = IT_SYS_GetTicks();
-				if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
+				OutIn_Motor_Disable();
+				OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
+				printf("In OC triggle sTime=%d, eTime=%d, npress=%010d\r\n", (int)nTempTime, (int)nCurTime, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+				if(nCurTime >= nTempTime + MOTO_SELF_CHECK_TIMEOUT)
 				{
-					printf("In time out,ST=%d, ET=%d\r\n", (int)nTempTime, (int)nCurTime);
+					//printf("In time out,ST=%d, ET=%d\r\n", (int)nTempTime, (int)nCurTime);
 					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
 					moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
 					OutIn_Motor_Disable();
 					return e_Feedback_Error;
-				}			
-			}
-			printf("step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
-			// add step
-			if(g_Record_Param.nXAddStep > 0)
-			{
-				for(i = 0; i < g_Record_Param.nXAddStep; i++)
-				{
-					OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
 				}
-			}
-			printf("add step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+				// add step
+				nDlyTime = 10;
+				OutIn_Motor_Enable();
+			    OutIn_Motor_ClockWise(); // in
+				OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_BEST);
+				while(nCurTime <= nTempTime + nDlyTime)
+				{
+					nCurTime = IT_SYS_GetTicks();
+					IT_SYS_DlyMs(1);
+				}
+				//OutIn_Motor_Disable();
+				OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
+				// add step
+//				if(g_Record_Param.nXAddStep > 0)
+//				{
+//					for(i = 0; i < g_Record_Param.nXAddStep; i++)
+//					{
+//						OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+//					}
+//				}
+				printf("add step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+			#else
+				for(i = 0; i < 35000; i++)
+				{
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+					{
+						IT_SYS_DlyMs(5);
+						if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) break;
+					}
+					OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+					nCurTime = IT_SYS_GetTicks();
+					if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
+					{
+						printf("In time out,ST=%d, ET=%d\r\n", (int)nTempTime, (int)nCurTime);
+						collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+						moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+						OutIn_Motor_Disable();
+						return e_Feedback_Error;
+					}			
+				}
+				printf("step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+				// add step
+				if(g_Record_Param.nXAddStep > 0)
+				{
+					for(i = 0; i < g_Record_Param.nXAddStep; i++)
+					{
+						OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+					}
+				}
+				printf("add step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+			#endif
 		}else{
 			//
 		}
@@ -741,45 +786,73 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 			OutIn_Motor_AntiClockWise(); // out
 			nCurTime = IT_SYS_GetTicks();
 			nTempTime = nCurTime;
-			for(i = 0; i < 35000; i++)
-			{
-				if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+			#if OUTIN_MOTOR_USE_PWM
+				OutIn_Motor_Exec(e_Dir_Pos, OUTIN_MOTOR_PWM_LEVEL_BEST);
+				while(nCurTime <= nTempTime + MOTO_SELF_CHECK_TIMEOUT)
 				{
-					IT_SYS_DlyMs(5);
 					if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
 					{
-						printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_OUT_CHANNEL));
-						break;
-					}						
-				}
-				if(eCall == e_NormalCheck_Call && flag != 0) // check press
-				{
-					nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
-					if(nPress >= PRESS_BUILD)
+						IT_SYS_DlyMs(2);
+						if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))	break;
+					}
+					nCurTime = IT_SYS_GetTicks();	
+					// build press
+					if(eCall == e_NormalCheck_Call && flag != 0) // check press
 					{
-						flag = 0;
-						Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
-						Valve_Air_Exec(EN_CLOSE);
-						Valve_Liquid_Exec(EN_CLOSE);		
-						//printf("2 X out-check press at first: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
+						nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
+						if(nPress >= PRESS_BUILD)
+						{
+							flag = 0;
+							Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+							Valve_Air_Exec(EN_CLOSE);
+							Valve_Liquid_Exec(EN_CLOSE);		
+							//printf("2 X out-check press at first: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
+						}
 					}
 				}
-				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-				nCurTime = IT_SYS_GetTicks();
-				if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
+				OutIn_Motor_Disable();
+				OutIn_Motor_Exec(e_Dir_Pos, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
+			#else
+				for(i = 0; i < 35000; i++)
 				{
-					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
-					moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-					printf("Out-in motor out timeout\r\n");
-					break;
-				}			
-			}
-			printf("step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+					{
+						IT_SYS_DlyMs(5);
+						if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+						{
+							printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_OUT_CHANNEL));
+							break;
+						}						
+					}
+					if(eCall == e_NormalCheck_Call && flag != 0) // check press
+					{
+						nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
+						if(nPress >= PRESS_BUILD)
+						{
+							flag = 0;
+							Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+							Valve_Air_Exec(EN_CLOSE);
+							Valve_Liquid_Exec(EN_CLOSE);		
+							//printf("2 X out-check press at first: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
+						}
+					}
+					OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
+					nCurTime = IT_SYS_GetTicks();
+					if(nCurTime >= nTempTime + OUTIN_MOTOR_HOME_TIME)
+					{
+						collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+						moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+						printf("Out-in motor out timeout\r\n");
+						break;
+					}			
+				}
+				printf("step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+			#endif
 		}else{
 			//
 		}
 		OutIn_Motor_Disable();
-		Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+		
 		// check press again
 		if(eCall == e_NormalCheck_Call)
 		{
@@ -1750,7 +1823,8 @@ UINT8  HW_LEVEL_GetElectrode(UINT8 chIndex)
 #if USE_STM32F407_ONLY
 	UINT8 hw_filter_get_electrode(UINT8 chIndex)
 	{
-		return GPIO_ReadInputDataBit(ELEC_PORT, ELEC_PIN);
+		// 0 elec triggle
+		return GPIO_ReadInputDataBit(ELEC_PORT, ELEC_PIN);  
 		//return Get_Elec_Status();
 	}
 #else
