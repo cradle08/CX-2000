@@ -556,7 +556,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
             {
 				// index = 0: WBC  transmission gain
 				#if USE_STM32F407_ONLY
-					DResistor_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
+					//DResistor_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
 				#else
 					HW_ADJ_SetResistor(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
 				#endif
@@ -576,7 +576,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
 				printf("WBC Gain No=%d, Val=%d\r\n", \
 					*(pchCmdBuf + 8), *(pchCmdBuf + 9));
 				#if USE_STM32F407_ONLY
-				
+					
 				#else
 					Transmission_Gain_Set(*(pchCmdBuf + 8), *(pchCmdBuf + 9));
 				#endif
@@ -903,6 +903,7 @@ UINT8 MSG_Handling(UINT8 * pchCmdBuf, UINT8 * pchFbkBuf)
                 *(pchFbkBuf + 0) = (nShort >> 8);
                 *(pchFbkBuf + 1) = (nShort & 0xff);
                 nParaLen = 2;
+				printf("pump speed=%d\r\n", nShort);
 			}
             break;
 			case CMD_QUERY_MOTO_IN_X_ADD: // moto x go home add

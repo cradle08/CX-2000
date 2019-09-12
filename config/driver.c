@@ -1207,6 +1207,7 @@ void DResistor_Set(UINT8 nIndex, UINT8 nVal)
 
 void Driver_Debug(UINT8 nIndex)
 {
+	UINT32 nCurTime, nTempTime;
 	UINT16 i = 0, val = 0;
 	switch(nIndex)
 	{
@@ -1349,6 +1350,23 @@ void Driver_Debug(UINT8 nIndex)
 		break;
 		case 8:
 		{
+			//MT_X_Home(e_NormalCheck_Call); 
+			
+			nCurTime = IT_SYS_GetTicks();
+			nTempTime = nCurTime;
+			OutIn_Motor_Enable();
+			OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_BEST);
+			while(nCurTime <= nTempTime + 50)
+			{
+				IT_SYS_DlyMs(1);
+				nCurTime = IT_SYS_GetTicks();
+			}
+			printf("end: sTime=%d, eTime=%d\r\n", (int)nTempTime, (int)nCurTime);
+			OutIn_Motor_Exec(e_Dir_Pos, OUTIN_MOTOR_PWM_LEVEL_CLOSE);			
+		}
+		break;
+		case 9:
+		{
 			
 			//WBC_48V_Self_Check();
 			//Valve1_Self_Check();
@@ -1390,10 +1408,6 @@ void Driver_Debug(UINT8 nIndex)
 			//Pump_Self_Check();
 			printf(" end\r\n");
 			//Get_Press_Value(5);
-			
-			
-			
-		
 		}
 		break;
 		default:break;	

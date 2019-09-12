@@ -54,34 +54,62 @@ UINT8 MT_ALL_Init(void)
 }
 
 // axis x
-enum eAxisXPos MT_X_get_posi(void)
-{
-    if (E_AXIS_X_POS_UNSURE == g_tAxisPosStatus.eAxisX)
-    {
-        if (0 == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
-        {
-            g_tAxisPosStatus.eAxisX = E_AXIS_X_POS_HOME;
-        }
-        else if (0 == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
-        {
-            g_tAxisPosStatus.eAxisX = E_AXIS_X_POS_CTRL;
-        }
-    }
-    return g_tAxisPosStatus.eAxisX;
-}
+#if USE_STM32F407_ONLY
+	enum eAxisXPos MT_X_get_posi(void)
+	{
+		if (0 == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+		{
+			return E_AXIS_X_POS_HOME;
+		}
+		else if (0 == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+		{
+			return E_AXIS_X_POS_CTRL;
+		}else{
+			return E_AXIS_X_POS_UNSURE;
+		}
+	}
+#else
+	enum eAxisXPos MT_X_get_posi(void)
+	{
+		if (E_AXIS_X_POS_UNSURE == g_tAxisPosStatus.eAxisX)
+		{
+			if (0 == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+			{
+				g_tAxisPosStatus.eAxisX = E_AXIS_X_POS_HOME;
+			}
+			else if (0 == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+			{
+				g_tAxisPosStatus.eAxisX = E_AXIS_X_POS_CTRL;
+			}
+		}
+		return g_tAxisPosStatus.eAxisX;
+	}
+#endif
 
-enum eAxisYPos MT_Y_get_posi(void)
-{
-    if (E_AXIS_Y_POS_UNSURE == g_tAxisPosStatus.eAxisY)
-    {
-        if (0 == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
-        {
-            g_tAxisPosStatus.eAxisY = E_AXIS_Y_POS_HOME;
-        }
-    }
 
-    return g_tAxisPosStatus.eAxisY;
-}
+#if USE_STM32F407_ONLY
+	enum eAxisYPos MT_Y_get_posi(void)
+	{
+		if (EN_CLOSE == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
+		{
+			return E_AXIS_Y_POS_HOME;
+		}else{
+			return E_AXIS_Y_POS_UNSURE;
+		}
+	}
+#else	
+	enum eAxisYPos MT_Y_get_posi(void)
+	{
+		if (E_AXIS_Y_POS_UNSURE == g_tAxisPosStatus.eAxisY)
+		{
+			if (0 == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
+			{
+				g_tAxisPosStatus.eAxisY = E_AXIS_Y_POS_HOME;
+			}
+		}
+		return g_tAxisPosStatus.eAxisY;
+	}
+#endif
 
 
 //UINT8 MT_X_Home(void)
@@ -211,6 +239,16 @@ enum eAxisYPos MT_Y_get_posi(void)
 //    return e_Feedback_Success;
 //}
 
+
+// at FPGA each 100 step = 15ms pwm pluse
+UINT16 AddStep_To_MS(UINT32 nStep)
+{
+	UINT16  nTime;
+	nTime = (nStep*15)/100;
+	return nTime;
+}
+
+
 #if USE_STM32F407_ONLY
 	UINT8 MT_X_Home(CALL_STYLE_E eCall) //UINT8 OutIn_Motor_Home(eModeType eMode)
 	{
@@ -254,7 +292,7 @@ enum eAxisYPos MT_Y_get_posi(void)
 					}
 					nCurTime = IT_SYS_GetTicks();					
 				}
-				OutIn_Motor_Disable();
+				//OutIn_Motor_Disable();
 				OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
 				printf("In OC triggle sTime=%d, eTime=%d, npress=%010d\r\n", (int)nTempTime, (int)nCurTime, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
 				if(nCurTime >= nTempTime + MOTO_SELF_CHECK_TIMEOUT)
@@ -266,10 +304,12 @@ enum eAxisYPos MT_Y_get_posi(void)
 					return e_Feedback_Error;
 				}
 				// add step
-				nDlyTime = 10;
+				nDlyTime = AddStep_To_MS(g_Record_Param.nXAddStep);
+				printf("addstep =%d, dlytime=%d\r\n", g_Record_Param.nXAddStep, (int)nDlyTime);
 				OutIn_Motor_Enable();
-			    OutIn_Motor_ClockWise(); // in
 				OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_BEST);
+				nCurTime = IT_SYS_GetTicks();
+				nTempTime = nCurTime;
 				while(nCurTime <= nTempTime + nDlyTime)
 				{
 					nCurTime = IT_SYS_GetTicks();
@@ -277,21 +317,13 @@ enum eAxisYPos MT_Y_get_posi(void)
 				}
 				//OutIn_Motor_Disable();
 				OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
-				// add step
-//				if(g_Record_Param.nXAddStep > 0)
-//				{
-//					for(i = 0; i < g_Record_Param.nXAddStep; i++)
-//					{
-//						OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
-//					}
-//				}
-				printf("add step over i=%d, npress=%010d\r\n", (int)i, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
+				printf("add step over sTime=%d, eTime=%d, npress=%010d\r\n", (int)nTempTime, (int)nCurTime, (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
 			#else
 				for(i = 0; i < 35000; i++)
 				{
 					if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
 					{
-						IT_SYS_DlyMs(5);
+						IT_SYS_DlyMs(2);
 						if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) break;
 					}
 					OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
@@ -464,40 +496,32 @@ enum eAxisYPos MT_Y_get_posi(void)
 #if USE_STM32F407_ONLY
 	UINT8 MT_X_Home_only(void)
 	{
-		UINT32 i = 0;
+		UINT32 nCurTime, nTempTime, i = 0;
 		//moto_work_stat(0, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
 		moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);	
 		// not detect the single of home at the begining, moving long diatance
+		nCurTime = IT_SYS_GetTicks();
+		nTempTime = nCurTime;
 		OutIn_Motor_Enable();
-		OutIn_Motor_ClockWise(); //int
-		if (EN_OPEN == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
+		OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_BEST);
+		while(nCurTime <= nTempTime + MOTO_SELF_CHECK_TIMEOUT)
 		{
-			for(i = 0; i < 35000; i++)
+			if (EN_OPEN == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
 			{
 				if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL))
 				{
-					IT_SYS_DlyMs(5);
+					IT_SYS_DlyMs(2);
 					if(EN_CLOSE == HW_LEVEL_GetOC(OC_HOME_CHANNEL)) break;
 				}
-				OutIn_Motor_Run(OUTIN_MOTOR_PULSE_UP_TIME, OUTIN_MOTOR_PULSE_DOWN_TIME);
 			}
-			//
-			if(i > 35000)
-			{
-				collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
-				//moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
-				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-			}
-			// long distance
-			MV_InitPara(Motor_X, 4000, 8000, 100, 10);
-			// OC is on the right, right step
-			MV_Move(Motor_X, 35000, e_Dir_Neg); // comes near the OC
 		}
-		else
+		OutIn_Motor_Exec(e_Dir_Neg, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
+		if(nCurTime > nTempTime + MOTO_SELF_CHECK_TIMEOUT)
 		{
-			;
+			collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+			//moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
+			moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
 		}
-		OutIn_Motor_Disable();
 		//moto_work_stat(0, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
 		moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
 		return e_Feedback_Success;
@@ -582,7 +606,7 @@ enum eAxisYPos MT_Y_get_posi(void)
 				Fix_Motor_Run(FIX_MOTOR_PULSE_UP_TIME, FIX_MOTOR_PULSE_DOWN_TIME);
 //				if(Get_Fix_OC_Status() == EN_CLOSE)
 //				{
-//					IT_SYS_DlyMs(5);
+//					IT_SYS_DlyMs(2);
 //					if(Get_Fix_OC_Status() == EN_CLOSE) break;
 //				}
 			}
@@ -755,7 +779,7 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 #if USE_STM32F407_ONLY
 	UINT8 MT_X_MoveToPosRel(CALL_STYLE_E eCall)
 	{
-		UINT32 nCurTime, nTempTime, i;
+		UINT32 nCurTime, nTempTime;
 		INT32 nPress = 0;
 		
 		UINT32 StartTicks = 0, EndTicks = 0;
@@ -810,14 +834,14 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 						}
 					}
 				}
-				OutIn_Motor_Disable();
+				//OutIn_Motor_Disable();
 				OutIn_Motor_Exec(e_Dir_Pos, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
 			#else
 				for(i = 0; i < 35000; i++)
 				{
 					if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
 					{
-						IT_SYS_DlyMs(5);
+						IT_SYS_DlyMs(2);
 						if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
 						{
 							printf("oc out status =%d\r\n", HW_LEVEL_GetOC(OC_OUT_CHANNEL));
@@ -851,8 +875,8 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 		}else{
 			//
 		}
-		OutIn_Motor_Disable();
-		
+		//OutIn_Motor_Disable();
+		OutIn_Motor_Exec(e_Dir_Pos, OUTIN_MOTOR_PWM_LEVEL_CLOSE);
 		// check press again
 		if(eCall == e_NormalCheck_Call)
 		{
@@ -872,7 +896,6 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 				EndTicks = StartTicks;
 				while((EndTicks - StartTicks) <= TIME_OVER_TS_BUILD_PRESS)
 				{
-					EndTicks = IT_SYS_GetTicks();
 					nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
 					if(nPress >= PRESS_BUILD) 
 					{
@@ -882,11 +905,11 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 						break;
 					}
 					IT_SYS_DlyMs(5);
+					EndTicks = IT_SYS_GetTicks();
 				}
-				printf("4 X out-check press: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
+				// create press timeout chec
 			}
 		}
-		// create press timeout check
 		if(eCall == e_NormalCheck_Call)
 		{
 			if((EndTicks - StartTicks) > TIME_OVER_TS_BUILD_PRESS) // create press fail
@@ -898,6 +921,8 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 				printf("5 X out at last,build press success: t=%08d, npress=%010d, addpress=%010d\r\n", (int)(EndTicks - StartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
 			}
 		}
+		printf("6 X out-check press: npress=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
+
 		Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
 		#ifdef  MOTO_DOBULE_ENABLE
 			MT_Y_Home(eCall);
@@ -1060,64 +1085,95 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 	}
 #endif // USE_STM32F407_ONLY
 
-UINT8 MT_X_MoveToPosRel_only(void)
-{
-    struct tMvMotorPara  tMvoingPara;
+#if USE_STM32F407_ONLY
+	UINT8 MT_X_MoveToPosRel_only(void)
+	{
+		UINT32 nCurTime, nTempTime;
+		
+		nCurTime = IT_SYS_GetTicks();
+		nTempTime = nCurTime;
+		OutIn_Motor_Exec(e_Dir_Pos, OUTIN_MOTOR_PWM_LEVEL_BEST);
+		while(nCurTime <= nTempTime + MOTO_SELF_CHECK_TIMEOUT)
+		{
+			if (EN_OPEN == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+			{
+				if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+				{
+					IT_SYS_DlyMs(2);
+					if(EN_CLOSE == HW_LEVEL_GetOC(OC_OUT_CHANNEL))	break;
+				}
+				nCurTime = IT_SYS_GetTicks();	
+			}
+		}
+		if(nCurTime > nTempTime + MOTO_SELF_CHECK_TIMEOUT)
+		{
+			collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+			//moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
+			moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+			return e_Feedback_Error;
+		}else{
+			moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
+			return e_Feedback_Success;
+		}
+	}
+	
+#else
+	UINT8 MT_X_MoveToPosRel_only(void)
+	{
+		struct tMvMotorPara  tMvoingPara;
 
-   // moto_work_stat(0, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
-	moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
-    // record the motor's para
-    tMvoingPara.nFreqMin = g_atMotorPara[Motor_X].nFreqMin;
-    tMvoingPara.nFreqMax = g_atMotorPara[Motor_X].nFreqMax;
-    tMvoingPara.nFreqInc = g_atMotorPara[Motor_X].nFreqInc;
-    tMvoingPara.nFreqSam = g_atMotorPara[Motor_X].nFreqSam;
+	   // moto_work_stat(0, MOTO_WORK_STAT_RUN);  /* 动作开始执行 */
+		moto_work_stat_2(0, MOTO_WORK_STAT_RUN, e_BUILD_PRESS_SUCCESS);
+		// record the motor's para
+		tMvoingPara.nFreqMin = g_atMotorPara[Motor_X].nFreqMin;
+		tMvoingPara.nFreqMax = g_atMotorPara[Motor_X].nFreqMax;
+		tMvoingPara.nFreqInc = g_atMotorPara[Motor_X].nFreqInc;
+		tMvoingPara.nFreqSam = g_atMotorPara[Motor_X].nFreqSam;
 
-    // not detect the single of home at the begining, moving long diatance
-    if (1 == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
-    {
-        // long distance
-        MV_InitPara(Motor_X, 4000, 8000, 100, 10);
-        // OC is on the right, right step
-        MV_Move(Motor_X, 35000, e_Dir_Pos);  /* 靠近出仓光耦方向 */
+		// not detect the single of home at the begining, moving long diatance
+		if (1 == HW_LEVEL_GetOC(OC_OUT_CHANNEL))
+		{
+			// long distance
+			MV_InitPara(Motor_X, 4000, 8000, 100, 10);
+			// OC is on the right, right step
+			MV_Move(Motor_X, 35000, e_Dir_Pos);  /* 靠近出仓光耦方向 */
 
-        while (1 == HW_LEVEL_GetOC(OC_OUT_CHANNEL)) // OC detection is not enable
-        {
-            if (e_True == MV_IsFinished(Motor_X))
-            {
-                MV_Stop(Motor_X);
-                collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
+			while (1 == HW_LEVEL_GetOC(OC_OUT_CHANNEL)) // OC detection is not enable
+			{
+				if (e_True == MV_IsFinished(Motor_X))
+				{
+					MV_Stop(Motor_X);
+					collect_return_hdl(COLLECT_RET_FAIL_SAMPLE);
 
-                //moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
-				moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
-                return e_Feedback_Error;
-            }
-        }
-        IT_SYS_DlyMs(3);      //
-        MV_Stop(Motor_X);
-    }
-    else
-    {
-        ;  /* 样本仓到位，不再运行 */
-    }
-    //
-    g_tAxisPosStatus.nAxisX = 0;
-    g_tAxisPosStatus.eAxisX    = E_AXIS_X_POS_CTRL;
-    //---------------------------------------------------
-    // set to the default moving parameters
-    MV_InitPara(Motor_X,
-                tMvoingPara.nFreqMin,
-                tMvoingPara.nFreqMax,
-                tMvoingPara.nFreqInc,
-                tMvoingPara.nFreqSam);
-    //
-    //moto_work_stat(0, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
-	moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
+					//moto_work_stat(0, MOTO_WORK_STAT_FAIL);  /* 动作执行失败 */
+					moto_work_stat_2(0, MOTO_WORK_STAT_FAIL, e_BUILD_PRESS_SUCCESS);
+					return e_Feedback_Error;
+				}
+			}
+			IT_SYS_DlyMs(3);      //
+			MV_Stop(Motor_X);
+		}
+		else
+		{
+			;  /* 样本仓到位，不再运行 */
+		}
+		//
+		g_tAxisPosStatus.nAxisX = 0;
+		g_tAxisPosStatus.eAxisX    = E_AXIS_X_POS_CTRL;
+		//---------------------------------------------------
+		// set to the default moving parameters
+		MV_InitPara(Motor_X,
+					tMvoingPara.nFreqMin,
+					tMvoingPara.nFreqMax,
+					tMvoingPara.nFreqInc,
+					tMvoingPara.nFreqSam);
+		//
+		//moto_work_stat(0, MOTO_WORK_STAT_OK);  /* 动作执行成功 */
+		moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_SUCCESS);
 
-    return e_Feedback_Success;
-}
-//#endif
-
-
+		return e_Feedback_Success;
+	}
+#endif
 
 #if USE_STM32F407_ONLY // not modify 
 	UINT8 MT_Y_MoveToPosRel(CALL_STYLE_E eCall)
@@ -1130,7 +1186,7 @@ UINT8 MT_X_MoveToPosRel_only(void)
 		}
 		// fix motor not at oc postion
 
-		if (EN_OPEN == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
+		if(EN_OPEN == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
 		{
 
 			Fix_Motor_Enable();
@@ -1139,7 +1195,7 @@ UINT8 MT_X_MoveToPosRel_only(void)
 			{
 				if(EN_CLOSE == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL))
 				{
-					IT_SYS_DlyMs(5);
+					IT_SYS_DlyMs(2);
 					if(EN_CLOSE == HW_LEVEL_GetOC(OC_SAMPLE_RELEA_CHANNEL)) break;
 				}
 				Fix_Motor_Run(FIX_MOTOR_PULSE_UP_TIME, FIX_MOTOR_PULSE_DOWN_TIME);
@@ -1159,7 +1215,7 @@ UINT8 MT_X_MoveToPosRel_only(void)
 			}
 		}
 		//
-		Fix_Motor_Disable();
+		//Fix_Motor_Disable();
 		if(eCall == e_NormalCheck_Call)
 		{
 			//moto_work_stat(1, MOTO_WORK_STAT_OK);  /* 动作执行成功 */

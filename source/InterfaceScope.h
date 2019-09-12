@@ -123,6 +123,7 @@ typedef enum{
 
 //-----------------------------------------------------------------------------------------
 // 电机的控制接口声明
+UINT16 AddStep_To_MS(UINT32 nStep);
 // init
 _EXT_ UINT8 MT_ALL_Init(void);
 // axis x
