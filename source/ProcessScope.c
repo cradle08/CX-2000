@@ -2089,8 +2089,24 @@ UINT8 MSG_TestingFunc(void)
 #endif
         collect_return_hdl(COLLECT_RET_FAIL_ELECTRODE);  /* 采集异常 */
         return e_Feedback_Error;
-    }
-
+    };
+	// check xk, if wbc v is too low, the bao shi kong error
+	if(EN_WBC_V_LOW == Get_WBC_V_Status(COUNT_WBC_XK_CHECK_V)){ 
+		if(EN_WBC_V_LOW == Get_WBC_V_Status(COUNT_WBC_XK_CHECK_V)){
+				printf("\r\nCount Error: before 4.5s xiao_kong error, ticks=%08d, preticks=%08d, press=%010d, udp=%d, preticks=%d, wbc_v=%d\r\n", \
+						(int)IT_LIST_GetTicks(), (int)nPreTicks, (int)Get_Press_Value(GET_PRESS_NUM_FIVE), (int)Get_Udp_Count(), (int)nPreTicks, (int)Get_WBC_V_Value());
+#ifdef DEBUG_INFO_UP_LOAD
+				sprintf((char*)sTempInfo, "\r\nCount Error: before 4.5s xiao_kong error: ticks=%08d, preticks=%08d, press=%010d, udp=%d, preticks=%d,wbc_v=%d\r\n", \
+							(int)IT_LIST_GetTicks(), (int)nPreTicks,(int)Get_Press_Value(GET_PRESS_NUM_FIVE), (int)Get_Udp_Count(), (int)nPreTicks, (int)Get_WBC_V_Value());
+				Append_Debug_Info((INT8*)pDInfo+nDILen, (INT8*)sTempInfo, (UINT16*)&nDILen);
+				memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
+				*pDILen = nDILen;
+#endif			
+				collect_return_hdl(COLLECT_RET_FAIL_WBC_BSK);
+				return e_Feedback_Error;
+		}		
+	}
+	
 	// first
     // 3. 数据预采集
     HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
