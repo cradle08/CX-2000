@@ -899,9 +899,9 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 					nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
 					if(nPress >= PRESS_BUILD) 
 					{
-						Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
-						Valve_Air_Exec(EN_CLOSE);
-						Valve_Liquid_Exec(EN_CLOSE);
+//						Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+//						Valve_Air_Exec(EN_CLOSE);
+//						Valve_Liquid_Exec(EN_CLOSE);
 						break;
 					}
 					IT_SYS_DlyMs(5);
@@ -910,10 +910,14 @@ _EXT_ UINT8 MT_Y_Home_Self_Check(void)
 				// create press timeout chec
 			}
 		}
+		Pump_Exec(e_Dir_Pos, PUMP_PWM_LEVEL_CLOSE);
+		Valve_Air_Exec(EN_CLOSE);
+		Valve_Liquid_Exec(EN_CLOSE);
 		if(eCall == e_NormalCheck_Call)
 		{
 			if((EndTicks - StartTicks) > TIME_OVER_TS_BUILD_PRESS) // create press fail
 			{
+				//Msg_Return_Handle_16(e_Msg_Status, CMD_STATUS_BUILD_PRESS, e_Feedback_Fail);	
 				moto_work_stat_2(0, MOTO_WORK_STAT_OK, e_BUILD_PRESS_FAIL);
 				printf("5 X out at last,build press error: t=%08d, npress=%010d, addpress=%010d\r\n", (int)(EndTicks - StartTicks), (int)nPress, (int)g_Record_Param.nAddPress);
 			}else{

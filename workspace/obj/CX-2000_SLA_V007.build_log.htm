@@ -1,0 +1,31 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+F:\CX-2000\src\CX-2000\workspace\prj\BC.uvproj
+Project File Date:  09/27/2019
+
+<h2>Output:</h2>
+Build target 'Scope'
+compiling InterfaceScope.c...
+..\..\source\InterfaceScope.c(255): warning:  #177-D: variable "i" was declared but never referenced
+                UINT32 nCurTime = 0, nTempTime = 0, nDlyTime = 0, i;
+..\..\source\InterfaceScope.c(499): warning:  #177-D: variable "i" was declared but never referenced
+                UINT32 nCurTime, nTempTime, i = 0;
+..\..\source\InterfaceScope.c(1369): warning:  #940-D: missing return statement at end of non-void function "HW_Valve_On"
+        }
+..\..\source\InterfaceScope.c(1421): warning:  #940-D: missing return statement at end of non-void function "HW_Valve_Off"
+        }               
+..\..\source\InterfaceScope.c(1484): warning:  #940-D: missing return statement at end of non-void function "HW_PUMP_Pulse"
+        }
+..\..\source\InterfaceScope.c(2159): warning:  #177-D: variable "nData" was declared but never referenced
+        UINT16 i, nData;
+..\..\source\InterfaceScope.c: 6 warnings, 0 errors
+linking...
+Program Size: Code=123332 RO-data=5136 RW-data=348 ZI-data=84516  
+FromELF: creating hex file...
+"..\obj\CX-2000_SLA_V007.axf" - 0 Error(s), 6 Warning(s).
+</pre>
+</body>
+</html>
