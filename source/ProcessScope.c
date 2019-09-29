@@ -69,7 +69,7 @@
 
 IO_ UINT32  g_Udp_Count, g_Frame_Count, g_Send_Fail;
 IO_ UINT8 g_AirLight_Flag;
-const UINT8 softver_edtion[] = "0.0.7";
+const UINT8 softver_edtion[] = "0.0.8";
 
 #ifdef DEBUG_INFO_UP_LOAD
 //	_STA_ IO_ UINT16 XRAM_ pDInfo[DEBUG_INFO_UP_LEN];
@@ -2735,7 +2735,9 @@ UINT8 AirLight_Self_Check(CALL_STYLE_E eCall)
 	nPress = Build_Press_Self_Check();
 	IT_SYS_DlyMs(1500);
 	nPress = Build_Press_Self_Check();
-	IT_SYS_DlyMs(1000);
+	IT_SYS_DlyMs(1500);
+	nPress = Build_Press_Self_Check();
+	IT_SYS_DlyMs(1500);
 	
 	nPress = 0;
 	nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);

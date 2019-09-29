@@ -157,7 +157,7 @@
 #define BUILD_PRESS_MIN                225000000 //21.5kpa
 #define BUILD_PRESS_RIGHT              PRESS_BUILD // (UINT32)220000000 //22kpa
 #define BUILD_PRESS_MAX                235000000  //22.5kpa
-#define BUILD_PRESS_DEVIATION          20000000   //2kpa
+#define BUILD_PRESS_DEVIATION          30000000   //2kpa
 #define COUNT_MIN_PRESS                140000000  //15kpa
 #define TIME_AIRLIGHT_CHECK            20000       /* 20秒  密闭性检测延时时间 */
 #define GET_PRESS_NUM_FIVE			   5
