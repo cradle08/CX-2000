@@ -2964,10 +2964,8 @@ _EXT_ UINT8 Pump_Self_Check(void)
 	
 	StartTicks = IT_SYS_GetTicks();
 	EndTicks = StartTicks;
+	
 	HW_PUMP_Pulse(PUMP_PRESS_FREQ, e_Dir_Pos);
-	
-	//HW_Valve_On(INDEX_VALVE_PUMP); 
-	
 	while((EndTicks - StartTicks) <= PUMP_SELF_CHECK_TIME)
 	{
 		EndTicks = IT_SYS_GetTicks();

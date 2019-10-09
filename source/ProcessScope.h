@@ -97,7 +97,7 @@
 
 //#define  COLLECT_RET_SUCCESS_AIRLIGHT     0x1001      /* 密闭性好 */  // yaolan
 
-#define PUMP_SELF_CHECK_TIME           5000
+#define PUMP_SELF_CHECK_TIME           2500
 
 //===================================================
 //
@@ -143,7 +143,7 @@
 //#define  TIME_OVER_TS_ADC              20000       /* 15秒  临时调试用 */
 #else
 #define  PRESS_BUILD                   230000000   /* 30kPa->22kPa 适合检测的气压 */
-#define  TIME_OVER_TS_BUILD_PRESS      15000       /* 10秒  负压泵建立负压超时时间 */
+#define  TIME_OVER_TS_BUILD_PRESS      10000       /* 10秒  负压泵建立负压超时时间 */
 #define  TIME_OVER_TS_ADC              25000       /* 25秒  数据采集超时时间 */
 #define  TIME_TRANSMISSION_GAIN		   2000
 #endif
