@@ -5,67 +5,6 @@
 
 #include "KernelHeader.h"
 
-////===================================================
-////
-//#define  TIMING_1    (50)
-//#define  TIMING_2    (TIMING_1 + 8000)
-//#define  TIMING_3    (TIMING_2 + 1000)
-//#define  TIMING_4    (TIMING_3 + 15000)     // 15000
-//#define  TIMING_5    (TIMING_4 + 3000)
-//#define  TIMING_6    (TIMING_5 + 50)
-//#define  TIMING_7    (TIMING_6 + 5000)
-
-////-----------
-
-//#define  INDEX_ELECTRODE        1    /* 电极检测通道 */
-//#define  INDEX_VALVE_PUMP       0    /* 泵气阀阀通道 */
-//#define  INDEX_VALVE_WBC        1    /* WBC气阀通道 */
-
-////-----------//
-//#ifdef  SAMPLE_CHIP_70UM
-//#define  ELECTRODE_WASTE               0                   /* 检测池溢出即退出检测流程 */
-//#define  PRESS_BUILD                   (UINT32)350000000   /* 35kPa 适合检测的气压 */
-//#define  PUMP_PRESS_OFF                0                   /* 气压泵停止工作 */
-//#define  PUMP_PRESS_FREQ               10000               /* 气压泵驱动频率 */
-
-//#define  TIME_OVER_TS_BUILD_PRESS      20000       /* 10秒  负压泵建立负压超时时间 */
-//#ifdef   DEBUG_TEST
-//#define  TIME_OVER_TS_ADC              35000       /* 35秒  临时调试用 */
-//#else
-//#define  TIME_OVER_TS_ADC              40000       /* 40秒  数据采集超时时间 */
-//#endif
-//#define  TIME_TS_ACTION_OFF            12000       /* 12秒   检测期间关阀时间 */
-//#define  TIME_TS_ACTION_ON             15000       /* 15秒  检测期间开阀时间 */
-////-----------//
-//#elif defined SAMPLE_CHIP_95UM
-////-----------//
-//#define  ELECTRODE_WASTE               0                   /* 检测池溢出即退出检测流程 */
-//#define  PUMP_PRESS_OFF                0                   /* 气压泵停止工作 */
-//#define  PUMP_PRESS_FREQ               10000               /* 气压泵驱动频率 */
-
-//#ifdef   DEBUG_TEST
-//#define  PRESS_BUILD                   (UINT32)600000000   /* 60kPa 适合检测的气压 */
-//#define  TIME_OVER_TS_BUILD_PRESS      60000       /* 60秒  负压泵建立负压超时时间 */
-//#define  TIME_OVER_TS_ADC              15000       /* 15秒  临时调试用 */
-//#else
-//#define  PRESS_BUILD                   (UINT32)220000000   /* 30kPa->22kPa 适合检测的气压 */
-//#define  TIME_OVER_TS_BUILD_PRESS      15000       /* 10秒  负压泵建立负压超时时间 */
-//#define  TIME_OVER_TS_ADC              25000       /* 25秒  数据采集超时时间 */
-//#endif
-
-//#define  TIME_TS_ACTION_OFF            4000        /* 4秒   检测期间关阀时间 */
-//#define  TIME_TS_ACTION_ON             7000        /* 7秒   检测期间开阀时间 */
-//#endif
-
-////-----------------------------------------------------------------------
-//#define BUILD_PRESS_MIN                (UINT32)215000000
-//#define BUILD_PRESS_RIGHT              (UINT32)220000000 // (UINT32)220000000
-//#define BUILD_PRESS_MAX                (UINT32)225000000
-//#define BUILD_PRESS_DEVIATION           (UINT32)20000000
-//#define TIME_AIRLIGHT_CHECK            20000       /* 20秒  密闭性检测延时时间 */
-////-----------//
-
-/* const UINT8 softver_edtion[] = "CX2100_SLA_V004_20180521_1000"; */  /* 统一版本号命名 */
 
 IO_ UINT32  g_Udp_Count, g_Frame_Count, g_Send_Fail;
 IO_ UINT8 g_AirLight_Flag;
@@ -224,111 +163,6 @@ void Msg_Return_Handle_String(EN_MSG_TYPE eType, UINT32 nCmd, UINT8 *pRst, UINT8
 }
 
 
-//void Status_Return_Handle_8(UINT32 nCmd, UINT8 nResult)
-//{
-//    UINT8  dat[4], n;
-//    UINT16 tim;
-
-//    n = 0;
-//    dat[n++] = nResult;      /* 大小端模式转换，该处采用大端模式 */
-
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 50); /* 延时50毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 44 53 57 53 - 00 10 00 00 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 60); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 重发一次数据包 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 70); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 重发一次数据包 */
-//}
-
-//void Status_Return_Handle_16(UINT32 nCmd, UINT16 nResult)
-//{
-//    UINT8  dat[4], n;
-//    UINT16 tim;
-
-//    n = 0;
-//    dat[n++] = nResult >> 8;
-//    dat[n++] = nResult;      /* 大小端模式转换，该处采用大端模式 */
-
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 50); /* 延时50毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 44 53 57 53 - 00 10 00 00 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 60); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 重发一次数据包 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 70); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 重发一次数据包 */
-//	
-//}
-
-//void Status_Return_Handle_32(UINT32 nCmd, UINT32 nResult)
-//{
-//    UINT8  dat[8], n;
-//    UINT16 tim;
-
-//    n = 0;
-//    dat[n++] = nResult >> 24;
-//    dat[n++] = nResult >> 16;      /* 大小端模式转换，该处采用大端模式 */
-//	dat[n++] = nResult >> 8;
-//	dat[n++] = nResult;
-//	
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 50); /* 延时50毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 44 53 57 53 - 00 10 00 00 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 60); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 重发一次数据包 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 70); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_STATUS, nCmd, dat, n);  /* 重发一次数据包 */
-//}
-
-//void Data_Return_Handle_8(UINT32 nCmd, UINT8 nResult)
-//{
-//    UINT8  dat[4], n;
-//    UINT16 tim;
-
-//    n = 0;
-//    dat[n++] = nResult;      /* 大小端模式转换，该处采用大端模式 */
-
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 50); /* 延时50毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 44 53 57 53 - 00 10 00 00 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 60); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 重发一次数据包 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 70); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 重发一次数据包 */
-//}
-
-//void Data_Return_Handle_16(UINT32 nCmd, UINT16 nResult)
-//{
-//	UINT8  dat[4], n;
-//    UINT16 tim;
-
-//    n = 0;
-//    dat[n++] = nResult >> 8;
-//    dat[n++] = nResult;      /* 大小端模式转换，该处采用大端模式 */
-
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 50); /* 延时50毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 44 53 57 53 - 00 10 00 00 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 60); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 重发一次数据包 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 70); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 重发一次数据包 */
-
-//}
-
-//void Data_Return_Handle_32(UINT32 nCmd, UINT32 nResult)
-//{
-//    UINT8  dat[8], n;
-//    UINT16 tim;
-
-//    n = 0;
-//    dat[n++] = nResult >> 24;
-//    dat[n++] = nResult >> 16;      /* 大小端模式转换，该处采用大端模式 */
-//	dat[n++] = nResult >> 8;
-//	dat[n++] = nResult;
-//	
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 50); /* 延时50毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 44 53 57 53 - 00 10 00 00 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 60); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 重发一次数据包 */
-//    while (((UINT16)(IT_ADC_GetTicks() - tim)) < 70); /* 延时10毫秒后再发送结果 */
-//    PL_NET_SendResult(PROTOCOL_HEAD_SEND_DATA, nCmd, dat, n);  /* 重发一次数据包 */
-//}
 
 
 void moto_work_stat(UINT8 mot_num, MOTO_WORK_STAT_E stat)
@@ -1178,12 +1012,6 @@ void Part_Test_Moto_X(UINT8 nNo, UINT32 nNum)
 		if(e_Feedback_Fail == HW_LWIP_Working_Recv_Handle(IT_LIST_GetTicks(), IT_ADC_GetTicks())) break;
 	}
 	// success
-//	strReturn[nLen++] = MOTO_OUT_IN_TEST;
-//	strReturn[nLen++] = 0x00;
-//	strReturn[nLen++] = ((i)/2) >> 24; strReturn[nLen++] = ((i)/2) >> 16;
-//	strReturn[nLen++] = ((i)/2) >> 8;  strReturn[nLen++] = ((i)/2);
-//	Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//	nLen = 0;
 	printf("Part_Test_Moto_X: Test Finished, i=%d\r\n", (int)((i)/2));
 	return;
 }
@@ -1235,26 +1063,6 @@ void Part_Test_WBC_Elec(UINT8 nNo, UINT32 nNum)
 			if(e_Feedback_Success == MT_X_MoveToPosRel(e_SelfCheck_Call)) // out
 			{
 				Temp = Get_WBC_V_Status(COUNT_WBC_TOUCH_CHECK_V);		
-//				if(Flag == Temp) 
-//				{
-//					strReturn[nLen++] = WBC_ELEC_TEST;
-//					strReturn[nLen++] = 0x01;
-//					strReturn[nLen++] = ((i + 1)/2) >> 24; strReturn[nLen++] = ((i + 1)/2) >> 16;
-//					strReturn[nLen++] = ((i + 1)/2) >> 8;  strReturn[nLen++] = ((i + 1)/2);
-//					Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//					nLen = 0;
-//					printf("Part_Test_WBC_Elec: moto out, check error,Temp=%d, Flag=%d, i=%d\r\n", Temp, Flag, (int)((i + 1)/2));
-//					return;
-//				}else{
-//					// send success once time
-//					strReturn[nLen++] = WBC_ELEC_TEST;
-//					strReturn[nLen++] = 0x00;
-//					strReturn[nLen++] = ((i + 1)/2) >> 24; strReturn[nLen++] = ((i + 1)/2) >> 16;
-//					strReturn[nLen++] = ((i + 1)/2) >> 8;  strReturn[nLen++] = ((i + 1)/2);
-//					Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//					nLen = 0;
-//					printf("Part_Test_WBC_Elec: moto out,Temp=%d, Flag=%d, i=%d\r\n", Temp, Flag, (int)((i + 1)/2));
-//				}
 				printf("Part_Test_WBC_Elec: moto out,Temp=%d, Flag=%d, i=%d\r\n", Temp, Flag, (int)((i + 1)/2));
 				Flag = Temp;
 			}else{
@@ -1317,12 +1125,6 @@ void Part_Test_WBC_Elec(UINT8 nNo, UINT32 nNum)
 		if(e_Feedback_Fail == HW_LWIP_Working_Recv_Handle(IT_LIST_GetTicks(), IT_ADC_GetTicks())) break;
 	}
 	// success
-//	strReturn[nLen++] = WBC_ELEC_TEST;
-//	strReturn[nLen++] = 0x00;
-//	strReturn[nLen++] = ((i)/2) >> 24; strReturn[nLen++] = ((i)/2) >> 16;
-//	strReturn[nLen++] = ((i)/2) >> 8;  strReturn[nLen++] = ((i)/2);
-//	Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//	nLen = 0;
 	printf("Part_Test_WBC_Elec: Test Finished, i=%d\r\n", (int)((i)/2));
 	return;
 }
@@ -1358,26 +1160,6 @@ void Part_Test_Check_Elec(UINT8 nNo, UINT32 nNum)
 			if(e_Feedback_Success == MT_X_MoveToPosRel(e_SelfCheck_Call)) // out
 			{
 				Temp = hw_filter_get_electrode(INDEX_ELECTRODE);
-//				if(Flag == Temp) 
-//				{
-//					strReturn[nLen++] = CHECK_ELEC_TEST;
-//					strReturn[nLen++] = 0x01;
-//					strReturn[nLen++] = ((i + 1)/2) >> 24; strReturn[nLen++] = ((i + 1)/2) >> 16;
-//					strReturn[nLen++] = ((i + 1)/2) >> 8;  strReturn[nLen++] = ((i + 1)/2);
-//					Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//					nLen = 0;
-//					printf("Part_Test_Check_Elec: moto out, check error,Temp=%d, Flag=%d, i=%d\r\n", Temp, Flag, (int)((i + 1)/2));
-//					return;
-//				}else{
-//					// send success once time
-//					strReturn[nLen++] = CHECK_ELEC_TEST;
-//					strReturn[nLen++] = 0x00;
-//					strReturn[nLen++] = ((i + 1)/2) >> 24; strReturn[nLen++] = ((i + 1)/2) >> 16;
-//					strReturn[nLen++] = ((i + 1)/2) >> 8;  strReturn[nLen++] = ((i + 1)/2);
-//					Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//					nLen = 0;
-//					printf("Part_Test_Check_Elec: moto out,Temp=%d, Flag=%d, i=%d\r\n", Temp, Flag, (int)((i + 1)/2));
-//				}
 				printf("Part_Test_Check_Elec: moto out,Temp=%d, Flag=%d, i=%d\r\n", Temp, Flag, (int)((i + 1)/2));
 				Flag = Temp;
 			}else{ //error
@@ -1440,12 +1222,6 @@ void Part_Test_Check_Elec(UINT8 nNo, UINT32 nNum)
 		if(e_Feedback_Fail == HW_LWIP_Working_Recv_Handle(IT_LIST_GetTicks(), IT_ADC_GetTicks())) break;
 	}
 	// success
-//	strReturn[nLen++] = CHECK_ELEC_TEST;
-//	strReturn[nLen++] = 0x00;
-//	strReturn[nLen++] = ((i)/2) >> 24; strReturn[nLen++] = ((i)/2) >> 16;
-//	strReturn[nLen++] = ((i)/2) >> 8;  strReturn[nLen++] = ((i)/2);
-//	Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//	nLen = 0;
 	printf("Part_Test_Check_Elec: Test Finished, i=%d\r\n", (int)((i)/2));
 	return;
 }	
@@ -1488,38 +1264,6 @@ void Part_Test_WBC_And_Check_Elec(UINT8 nNo, UINT32 nNum)
 				Temp_wbc = Get_WBC_V_Status(COUNT_WBC_TOUCH_CHECK_V);
 				printf("Part_Test_WBC_And_Check_Elec: moto out,i=%d, Temp_wbc=%d, Flag_wbc=%d, Temp_check=%d, Flag_Check=%d\r\n",\
 						(int)((i + 1)/2), Temp_wbc, Flag_wbc, Temp_Check, Flag_Check);
-//				Result = 0;
-//				if(Flag_Check == Temp_Check) 
-//				{
-//					Result = 3;
-//				}
-//				if(Flag_wbc == Temp_wbc)
-//				{
-//					if(Result == 3) Result = 5;
-//					else Result = 4;
-//				}	
-//				//
-//				if(Result == 0){
-//					// send success once time
-//					strReturn[nLen++] = WBC_AND_CHECK_ELEC_TEST;
-//					strReturn[nLen++] = Result;
-//					strReturn[nLen++] = ((i + 1)/2) >> 24; strReturn[nLen++] = ((i + 1)/2) >> 16;
-//					strReturn[nLen++] = ((i + 1)/2) >> 8;  strReturn[nLen++] = ((i + 1)/2);
-//					Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//					nLen = 0;
-//					printf("Part_Test_WBC_And_Check_Elec: moto out,i=%d, Temp_wbc=%d, Flag_wbc=%d, Temp_check=%d, Flag_Check=%d\r\n",\
-						(int)((i + 1)/2), Temp_wbc, Flag_wbc, Temp_Check, Flag_Check);
-//				}else{
-//					
-//					strReturn[nLen++] = WBC_AND_CHECK_ELEC_TEST;
-//					strReturn[nLen++] = Result;
-//					strReturn[nLen++] = ((i + 1)/2) >> 24; strReturn[nLen++] = ((i + 1)/2) >> 16;
-//					strReturn[nLen++] = ((i + 1)/2) >> 8;  strReturn[nLen++] = ((i + 1)/2);
-//					Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//					nLen = 0;
-//					printf("Part_Test_WBC_And_Check_Elec: moto out,i=%d, Temp_wbc=%d, Flag_wbc=%d, Temp_check=%d, Flag_Check=%d\r\n",\
-						(int)((i + 1)/2), Temp_wbc, Flag_wbc, Temp_Check, Flag_Check);
-//				}
 				Flag_Check = Temp_Check;
 				Flag_wbc = Temp_wbc;
 				
@@ -1642,13 +1386,6 @@ void Part_Test_AirFaucet(UINT8 nNo, UINT32 nNum)
 		if(g_tAxisPosStatus.eAxisX == E_AXIS_X_POS_HOME) // go out 
 		{
 			if(e_Feedback_Success == MT_X_MoveToPosRel(e_SelfCheck_Call)){ // out
-//				// send success once time
-//				strReturn[nLen++] = AIRFAUCET_TEST;
-//				strReturn[nLen++] = 0x00;
-//				strReturn[nLen++] = ((i + 1)/2) >> 24; strReturn[nLen++] = ((i + 1)/2) >> 16;
-//				strReturn[nLen++] = ((i + 1)/2) >> 8;  strReturn[nLen++] = ((i + 1)/2);
-//				Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//				nLen = 0;
 				printf("Part_Test_AirFaucet: moto out success, i=%d\r\n", (int)((i + 1)/2));
 			}else{
 				strReturn[nLen++] = AIRFAUCET_TEST;
@@ -1709,13 +1446,6 @@ void Part_Test_AirFaucet(UINT8 nNo, UINT32 nNum)
 		}
 		if(e_Feedback_Fail == HW_LWIP_Working_Recv_Handle(IT_LIST_GetTicks(), IT_ADC_GetTicks())) break;
 	}
-	// success
-//	strReturn[nLen++] = AIRFAUCET_TEST;
-//	strReturn[nLen++] = 0x00;
-//	strReturn[nLen++] = ((i)/2) >> 24; strReturn[nLen++] = ((i)/2) >> 16;
-//	strReturn[nLen++] = ((i)/2) >> 8;  strReturn[nLen++] = ((i)/2);
-//	Msg_Return_Handle_String(e_Msg_Status, CMD_STATUS_PART_TEST, strReturn, nLen);
-//	nLen = 0;
 	printf("Part_Test_AirFaucet: Test Finished, i=%d\r\n", (int)((i)/2));
 	return;
 
@@ -1871,16 +1601,7 @@ UINT8 Transmission_Gain_Set(UINT8 nNo, UINT8 nVal)
         collect_return_hdl(COLLECT_RET_FAIL_NONE_HOME);  /* 未执行进仓操作 */
         return e_Feedback_Error;
     }
-	
-//	if(EN_WBC_V_LOW != Get_WBC_V_Status(COUNT_WBC_START_V)) // the wbc_v not changed
-//	{
-//		printf("Count Error: WBC Elec Touch Error, elec=%d, wbc_v=%d, press=%09d\r\n",\
-//			(int)hw_filter_get_electrode(INDEX_ELECTRODE),(int)Get_WBC_V_Value(), (int)Get_Press_Value(GET_PRESS_NUM_FIVE));
-//		collect_return_hdl(COLLECT_RET_FAIL_WBC_TOUCH);
-//		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
-//		return e_Feedback_Error;	
-//	}
-	//HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_DROP_FPGA_DATA);
+
 	Reset_Udp_Count(0);
 	IT_ADC_SetTicks(0);          
 	IT_LIST_SetTicks(0);
@@ -1907,6 +1628,7 @@ UINT8 Transmission_Gain_Set(UINT8 nNo, UINT8 nVal)
 
     collect_return_hdl(COLLECT_RET_SUCESS);  
 	printf("end\r\n");
+	return 0;
 }
 
 
@@ -2158,37 +1880,6 @@ UINT8 MSG_TestingFunc(void)
 			*pDILen = nDILen;
 #endif			
 		}	
-	
-//    while((nCurTicks - nTempTicks) <= TIME_TS_ACTION_OFF) // 4000ms
-//    {
-//        nCurTicks = IT_SYS_GetTicks();
-//		nPreTicks = nCurTicks - nTempTicks;
-//		if(COUNT_WBC_START_V > Get_WBC_V_Value()){ // wbc elec volight changed normal
-		//	nPreTicks = nCurTicks - nTempTicks;
-//			HW_Valve_Off(INDEX_VALVE_PUMP);  // all the air way
-//			HW_Valve_Off(INDEX_VALVE_WBC);    // WBC
-/*			IT_SYS_DlyMs(1000);
-			nCurTicks = IT_SYS_GetTicks();
-			nPreTicks = nCurTicks - nTempTicks;
-			nPreTicks -= 1000;
-*/
-//			if(COUNT_WBC_START_V > Get_WBC_V_Value()){
-//					printf("Count Status: at 4S imbibition, ticks=%08d, preticks=%08d, press=%010d, udp=%d, wbc_v=%d\r\n", \
-//						(int)IT_LIST_GetTicks(), (int)nPreTicks, (int)HW_ADC_SpiGetPress(), (int)Get_Udp_Count(), (int)Get_WBC_V_Value());
-//#ifdef DEBUG_INFO_UP_LOAD
-//				sprintf((char*)sTempInfo, "Count Status: at 4S imbibition, ticks=%08d, preticks=%08d,press=%010d, udp=%d, wbc_v=%d\r\n", \
-//							(int)IT_LIST_GetTicks(), (int)nPreTicks,(int)HW_ADC_SpiGetPress(), (int)Get_Udp_Count(), (int)Get_WBC_V_Value());
-//				Append_Debug_Info((INT8*)pDInfo+nDILen, (INT8*)sTempInfo, (UINT16*)&nDILen);
-//				memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
-//				*pDILen = nDILen;
-//#endif
-//				break;
-//			}
-//			HW_Valve_Off(INDEX_VALVE_PUMP);  // all the air way
-//			HW_Valve_On(INDEX_VALVE_WBC);    // WBC
-//		}
-//		nCurTicks = IT_SYS_GetTicks();
-//		nPreTicks = nCurTicks - nTempTicks;
         // to check the ELECTRODE
         if (ELECTRODE_WASTE == hw_filter_get_electrode(INDEX_ELECTRODE))
         {
@@ -2253,37 +1944,6 @@ UINT8 MSG_TestingFunc(void)
 	*pDILen = nDILen;
 #endif
 //	}
-// more time
-//	nCurTicks = IT_SYS_GetTicks();
-//	nTempTicks = nCurTicks;
-//	nPreTicks1 = nCurTicks - nTempTicks;
-//	if(COUNT_WBC_START_V < Get_WBC_V_Value()){
-//		HW_Valve_Off(INDEX_VALVE_PUMP);  // all the air way
-//		HW_Valve_On(INDEX_VALVE_WBC);    // WBC
-//		nCurTicks = IT_SYS_GetTicks();
-//		while((nCurTicks - nTempTicks) <= TIME_TS_ACTION_OFF){ // 4000ms
-//			nCurTicks = IT_SYS_GetTicks();
-//			nPreTicks1 = nCurTicks - nTempTicks;
-//			if(COUNT_WBC_START_V > Get_WBC_V_Value()){
-//				HW_Valve_Off(INDEX_VALVE_PUMP);  // all the air way
-//				HW_Valve_Off(INDEX_VALVE_WBC);    // WBC
-//				break;
-//				}
-//			}
-//	}
-//	nPreTicks += nPreTicks1;
-//	HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
-//    HW_Valve_Off(INDEX_VALVE_PUMP);  // all the air way
-//    HW_Valve_Off(INDEX_VALVE_WBC);    // WBC
-//	printf("Count Status: after 4S-2, ticks=%08d, preticks=%08d, press=%010d, udp=%d, preticks=%d, wbc_v=%d\r\n", \
-//						(int)IT_LIST_GetTicks(), (int)nPreTicks, (int)HW_ADC_SpiGetPress(), (int)Get_Udp_Count(), (int)nPreTicks, (int)Get_WBC_V_Value());
-//#ifdef DEBUG_INFO_UP_LOAD
-//		sprintf((char*)sTempInfo, "Count Status: after 4S-2, ticks=%08d, preticks=%08d,press=%010d, udp=%d, preticks=%d, wbc_v=%d\r\n", \
-//							(int)IT_LIST_GetTicks(), (int)nPreTicks,(int)HW_ADC_SpiGetPress(), (int)Get_Udp_Count(), (int)nPreTicks,( int)Get_WBC_V_Value());
-//		Append_Debug_Info((INT8*)pDInfo+nDILen, (INT8*)sTempInfo, (UINT16*)&nDILen);
-//		memset((char*)sTempInfo, 0, DEBUG_INFO_TEMP_LEN);
-//		*pDILen = nDILen;
-//#endif
 
 	// -----check wbc elec touch before count----------
 	if(EN_WBC_V_LOW != Get_WBC_V_Status(COUNT_WBC_START_V)) // the wbc_v not changed
@@ -2418,42 +2078,7 @@ UINT8 MSG_TestingFunc(void)
     {
 		//----------getting data and send ------------------------------
 		HW_LWIP_Working(IT_LIST_GetTicks(), IT_ADC_GetTicks(), EN_SEND_FPGA_DATA);
-		
-		// to check wbc_v, the wbc_v is vary and always larger than COUNT_WBC_MIN_V at sometime
-//		if(nWBC_Count < 30)
-//		{			
-//			if((nCurTicks - nTempTicks) >= 1)
-//			{
-//				nWBC_Count++;
-//				nTempTicks = nCurTicks;
-//				wbc_v = Get_WBC_V_Value();
-//				if(wbc_v < COUNT_WBC_TOUCH_CHECK_V)
-//				{
-//					nWBC_Val++;
-//				}
-//				if(nWBC_Count == 30)
-//				{
-//					if(nWBC_Val < 5)
-//					{
-//						printf("\r\nCount Error: wbc_v error, ticks=%08d,adc_ticks=%08d, udp=%d, q=%d, f=%d, elec=%d, wbc_v=%d, prss=%09d\r\n",\
-//						(int)IT_LIST_GetTicks(), (int)IT_ADC_GetTicks(), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail,\
-//						(int)hw_filter_get_electrode(INDEX_ELECTRODE),(int)wbc_v, (int)HW_ADC_SpiGetPress());
-//						collect_return_hdl(COLLECT_RET_FAIL_WBC_ELECTRODE);
-//#ifdef DEBUG_INFO_UP_LOAD	
-//						sprintf((char*)sTempInfo, "\r\nCount Error: wbc_v error, ticks=%08d, adc_ticks=%08d, udp=%d, q=%d, f=%d, elec=%d, wbc_v=%d, prss=%09d\r\n",\
-//						(int)IT_LIST_GetTicks(), (int)IT_ADC_GetTicks(), (int)Get_Udp_Count(), (int)g_Frame_Count, (int)g_Send_Fail,\
-//						(int)hw_filter_get_electrode(INDEX_ELECTRODE),(int)wbc_v, (int)HW_ADC_SpiGetPress());
-//						Append_Debug_Info((INT8*)pDInfo+nDILen, (INT8*)sTempInfo, (UINT16*)&nDILen);
-//						*pDILen = nDILen;
-//#endif				
-//						HW_End_WBC();
-//						Send_Last_FIFO_Data();
-//						collect_return_hdl(COLLECT_RET_FAIL_WBC_ELECTRODE);
-//						return e_Feedback_Error;
-//					}
-//				}				
-//			}			
-//		}
+	
 		//------get wbc data every 500ms------
 		if((nCurTicks - nTempTicks1) >= 500) // 1ms per time
 		{
@@ -2637,16 +2262,8 @@ INT32 Build_Press_Self_Check(void)
 	IO_ UINT32 nTempTicks = 0;
 	IO_ UINT8 i;
 	
-//    if (E_AXIS_X_POS_HOME != MT_X_get_posi())
-//    {
-//		MT_X_IN_Self_Check(e_SelfCheck_Call);
-//        return e_Feedback_Error;
-//    }
 
     HW_PUMP_Pulse(PUMP_PRESS_OFF, e_Dir_Pos);     // off
-//	HW_Valve_On(INDEX_VALVE_PUMP);
-//	HW_Valve_On(INDEX_VALVE_WBC);   // WBC
-//  IT_SYS_DlyMs(1000);
 	HW_Valve_Off(INDEX_VALVE_PUMP);  /* all the air way  CKP CHANGED 20171219*/
     HW_Valve_Off(INDEX_VALVE_WBC);   // WBC
     //==================
@@ -2671,12 +2288,6 @@ INT32 Build_Press_Self_Check(void)
             if (nCurTicks - nTempTicks >= 10)    // 10 ms
             {
 				nTempTicks = nCurTicks;
-//				nPress = 0;
-//				for(i = 0; i < 5; i++)
-//				{
-//					nPress += HW_ADC_SpiGetPress();
-//				}
-//				nPress /= 5;
 				nPress = Get_Press_Value(GET_PRESS_NUM_FIVE);
 				//Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_BUILD_PRESS, nPress);
 				//
@@ -2747,9 +2358,6 @@ UINT8 AirLight_Self_Check(CALL_STYLE_E eCall)
 		printf("AirLight fail(Build Press Error): Press=%010d, addpress=%010d\r\n", (int)nPress, (int)g_Record_Param.nAddPress);
 		return e_Feedback_Fail;
 	}
-//	nPress = HW_ADC_SpiGetPress();
-    // Status_Return_Handle_32(CMD_STATUS_BUILD_PRESS, nPress);
-	
 	// compute
 	nCurTicks = IT_SYS_GetTicks();
 	nLstTicks = nCurTicks;
@@ -2784,11 +2392,7 @@ UINT8 AirLight_Self_Check(CALL_STYLE_E eCall)
 		HW_Valve_Off(INDEX_VALVE_PUMP); 
         HW_Valve_Off(INDEX_VALVE_WBC); 
 	}
-	/////////////
-	//Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_AIRLIGHT_PRESS, nCurPress);
-	//Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_AIRLIGHT_PRESS, nPress);
-	//Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_AIRLIGHT_PRESS, g_Record_Param.nAddPress);
-	// result 
+ 
 	if(nCurTicks < (nLstTicks + TIME_AIRLIGHT_CHECK))
 	{
 		// error
@@ -2893,10 +2497,6 @@ _EXT_ UINT32 WBC_48V_Self_Check(void)
 	nVCheck = Get_WBC_V_Value();
 	nVIn = nVCheck*422/22;
 	
-//	Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_WBC_48V, nWord);
-//	Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_WBC_48V, nVCheck);
-//	Msg_Return_Handle_32(e_Msg_Status, CMD_STATUS_WBC_48V, nVIn);
-	
     printf("WBC_48V Slef Check: wbc_v=%d, 48v=%d\r\n",\
 					 (int)nVCheck, (int)nVIn);
 	if(nVIn >= 45000 && nVIn <= 55000)
@@ -2935,28 +2535,6 @@ _EXT_ UINT8 Valve2_Self_Check(void)
 	return e_Feedback_Success;
 }
 
-/*
-_EXT_ UINT8 Valve_Self_Check(void)
-{
-	UINT8 i;
-    for(i = 0; i < 3; i++)
-	{
-		HW_Valve_On(VALVE_PRESSSURE);
-		IT_SYS_DlyMs(1000);
-		HW_Valve_Off(VALVE_PRESSSURE);
-		IT_SYS_DlyMs(1000);
-	}
-	IT_SYS_DlyMs(200);
-	for(i = 0; i < 3; i++)
-	{
-		HW_Valve_On(VALVE_SAMPLE);
-		IT_SYS_DlyMs(1000);
-		HW_Valve_Off(VALVE_SAMPLE);
-		IT_SYS_DlyMs(1000);
-	}
-	return e_Feedback_Success;
-}
-*/
 
 _EXT_ UINT8 Pump_Self_Check(void)
 {
