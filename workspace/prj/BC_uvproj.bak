@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>..\obj\</OutputDirectory>
-          <OutputName>CX-2000_SLA_V009</OutputName>
+          <OutputName>CX-2000_SLA_V008</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>

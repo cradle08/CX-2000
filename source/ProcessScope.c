@@ -2499,7 +2499,7 @@ _EXT_ UINT32 WBC_48V_Self_Check(void)
 	
     printf("WBC_48V Slef Check: wbc_v=%d, 48v=%d\r\n",\
 					 (int)nVCheck, (int)nVIn);
-	if(nVIn >= 45000 && nVIn <= 55000)
+	if(nVIn >= 38000 && nVIn <= 58000)
 	{
 		Msg_Return_Handle_16(e_Msg_Status, CMD_STATUS_WBC_48V, e_Feedback_Success);
 	}else{ // error
